@@ -13,7 +13,8 @@ from app.timeutil import format_now_for_prompt
 SYSTEM_PROMPT = """Bạn tách câu nói tiếng Việt hoặc tiếng Anh thành danh sách việc cần làm.
 Bây giờ là {now} (giờ Việt Nam).
 Quy tắc:
-- Mỗi việc riêng là 1 mục. Một câu có thể có nhiều việc.
+- Mỗi việc riêng là 1 mục. Một câu có thể có nhiều việc. Bản chép giọng nói có thể thiếu dấu phẩy: "gọi cho anh Tuấn mua sữa cho con" là 2 việc. Các hành động phục vụ cùng một việc là 1 mục: "đi siêu thị mua sữa và trứng" = 1 việc.
+- source: chép nguyên văn phần câu nói thuộc về việc này (gồm cả từ chỉ ngày, giờ, nhắc, quan trọng của riêng việc đó). Chỉ lấy due_date, remind_at, starred từ source của chính việc đó.
 - title: ngắn gọn, viết hoa chữ đầu, giữ nguyên ngôn ngữ người nói, bỏ các từ chỉ thời gian, nhắc nhở và mức độ quan trọng ("nhắc tôi", "mai", "lúc 9 giờ", "quan trọng", "remind me", "tomorrow", "at 3pm").
 - due_date (YYYY-MM-DD): "hôm nay", "mai"/"ngày mai", "ngày kia"/"mốt", "thứ 2".."thứ 7", "chủ nhật" (lần gần nhất sau hôm nay), "tuần sau" (thứ Hai tuần sau), "cuối tuần" (thứ Bảy tới), "20/10", "ngày 25". Tiếng Anh: "today", "tomorrow", "Friday"/"on Friday" (lần gần nhất sau hôm nay), "next week" (thứ Hai tuần sau), "this weekend" (thứ Bảy tới), "Oct 25"/"the 25th". Không nói -> null.
 - remind_at (YYYY-MM-DDTHH:MM, giờ Việt Nam): chỉ khi có giờ cụ thể hoặc có chữ "nhắc". "9 giờ sáng" = 09:00, "3 giờ chiều" = 15:00, "8 giờ tối" = 20:00, "9 rưỡi" = 09:30, "10 giờ kém 15" = 09:45; "3pm" = 15:00, "9:30 am" = 09:30, "noon" = 12:00. Có "nhắc"/"remind" mà chỉ nói buổi: sáng/morning = 08:00, trưa = 12:00, chiều/afternoon = 15:00, tối/evening/tonight = 20:00. Có giờ mà không có ngày: so với giờ bây giờ, giờ đó chưa tới -> hôm nay, đã qua -> ngày mai (ví dụ bây giờ 14:30: "4 giờ chiều" -> hôm nay 16:00, "10 giờ sáng" -> ngày mai 10:00). Không nói -> null.
@@ -31,8 +32,9 @@ JSON_SCHEMA = {
             "items": {
                 "type": "object",
                 "additionalProperties": False,
-                "required": ["title", "due_date", "remind_at", "starred"],
+                "required": ["source", "title", "due_date", "remind_at", "starred"],
                 "properties": {
+                    "source": {"type": "string"},  # spoken words of this task; makes dates attach to the right task
                     "title": {"type": "string"},
                     "due_date": {"type": ["string", "null"]},
                     "remind_at": {"type": ["string", "null"]},

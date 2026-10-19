@@ -18,6 +18,15 @@ RUNS = [1, 2, 3]
 # sentence -> list of (keyword in title, due_date, remind_at, starred); ANY = not checked
 ANY = object()
 CASES = {
+    "mai 9 giờ sáng gọi cho anh Tuấn, mua sữa cho con, quan trọng": [
+        ("tuấn", "2026-10-20", "2026-10-20T09:00", False),
+        ("sữa", None, None, True),
+    ],
+    "Mai chín giờ sáng gọi cho anh Tuấn mua sữa cho con, quan trọng.": [  # STT output without the comma
+        ("tuấn", "2026-10-20", "2026-10-20T09:00", False),
+        ("sữa", None, None, True),
+    ],
+    "đi siêu thị mua sữa và trứng": [("siêu thị", None, None, False)],
     "nhắc tôi 9 giờ sáng gọi mẹ": [("mẹ", "2026-10-20", "2026-10-20T09:00", False)],
     "mua sữa": [("sữa", None, None, False)],
     "mai 9 giờ sáng gọi cho anh Tuấn": [("tuấn", "2026-10-20", "2026-10-20T09:00", False)],
@@ -33,7 +42,7 @@ CASES = {
     "hạn 25/10 nộp thuế, gấp": [("thuế", "2026-10-25", None, True)],
     "remind me to call the bank tomorrow at 3pm": [("bank", "2026-10-20", "2026-10-20T15:00", False)],
     "buy milk and pay rent on Friday, it's urgent": [
-        ("milk", ANY, None, ANY),  # "on Friday, it's urgent" may cover both tasks
+        ("milk", ANY, None, False),  # "on Friday" may cover both tasks; "it's urgent" only the rent
         ("rent", "2026-10-23", None, True),
     ],
 }
