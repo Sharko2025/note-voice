@@ -359,7 +359,7 @@ Làm backend trước và test bằng `curl` với audio thu sẵn, sau đó m�
 - [x] Bộ test parse ở mục Pipeline AI đều qua
 - [x] Các endpoint tasks (4 view), health
 - [x] Deploy lên EC2, nginx + SSL, `curl` từ ngoài gửi audio ra kết quả đúng
-- [ ] Ghi chú: bảng `notes`, `POST /voice` ra cả ghi chú (+ `as_note`), endpoint `/notes`, bộ test parse mới đều qua, deploy
+- [x] Ghi chú: bảng `notes`, `POST /voice` ra cả ghi chú (+ `as_note`), endpoint `/notes`, bộ test parse mới đều qua, deploy (2026-10-19; audio TTS qua HTTPS 2,7 s, còn chờ file ghi âm thật)
 
 **Trước Phase 2: Mockup**
 
