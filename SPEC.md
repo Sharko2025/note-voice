@@ -1,6 +1,6 @@
 # Spec MVP – Note Cá Mập (việc cần làm bằng giọng nói)
 
-Oct 19, 2026 · Loi duyệt logo + UI 2026-10-19
+Oct 19, 2026 · Loi duyệt logo + UI 2026-10-19 · thêm Ghi chú (mockup v3) 2026-10-19
 
 ## Mục tiêu và phạm vi MVP
 
@@ -365,7 +365,7 @@ Làm backend trước và test bằng `curl` với audio thu sẵn, sau đó m�
 
 - [x] Mockup logo, Loi chọn 1 phương án (C, 2026-10-19)
 - [x] Mockup toàn bộ màn hình (VI + EN, sáng + tối), Loi duyệt (2026-10-19)
-- [ ] Mockup v3 thêm màn Ghi chú, Loi duyệt
+- [x] Mockup v3 thêm màn Ghi chú, Loi duyệt (2026-10-19)
 
 **Phase 2: App Android cơ bản**
 
@@ -403,7 +403,7 @@ Làm backend trước và test bằng `curl` với audio thu sẵn, sau đó m�
 | Điều hướng | Side menu, không bottom bar | Loi chốt 2026-10-19; giữ chỗ cho danh sách trên màn hình ngoài |
 | Kết quả ghi âm | Snackbar hiện câu đã nghe + Hoàn tác | Loi chốt 2026-10-19; thấy ngay khi STT nghe nhầm |
 | Báo lại (snooze) | Có trong MVP, cố định 10 phút | Loi chốt 2026-10-19 |
-| Ghi chú (ý tưởng, câu hay) | Có trong MVP. AI tự phân loại: phần không phải việc → ghi chú nguyên văn, không bỏ gì. 1 mục Ghi chú chung, nhãn Ý tưởng / Câu hay / Ghi chú | Loi chốt 2026-10-19 (phương án A); 1 mục chung theo đề xuất, Loi chưa nói khác |
+| Ghi chú (ý tưởng, câu hay) | Có trong MVP. AI tự phân loại: phần không phải việc → ghi chú nguyên văn, không bỏ gì. 1 mục Ghi chú chung, nhãn Ý tưởng / Câu hay / Ghi chú | Loi chốt 2026-10-19 (phương án A, 1 mục chung, mockup v3) |
 | Cách mở app | App bình thường, micro trong danh sách | Giống Microsoft To Do; không cần màn hình khóa/phím bên |
 | Nhắc việc | Báo thức trên máy, không push từ server | 1 thiết bị, không cần FCM |
 | Thời gian tương đối | Tính theo `recorded_at`, không theo lúc server nhận | Nói offline hôm qua "mai" vẫn ra đúng ngày |

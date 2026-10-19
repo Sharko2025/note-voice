@@ -101,7 +101,7 @@ Hàm thuần `normalize(items, recorded_at) -> list[TaskDraft]`, không gọi m�
 - Test thường: `format_now_for_prompt` đúng thứ ở ranh giới ngày (23:30 giờ VN = 16:30 UTC vẫn là ngày VN đó).
 - Test `-m openai` (`test_parse_openai.py`): 13 câu trong bảng SPEC với `now` cố định, kiểm số việc, `title` (chứa từ khóa), `due_date`, `remind_at`, `starred`. Chạy mỗi câu 3 lần để bắt kết quả không ổn định.
 - Test `-m openai` (`test_voice_openai.py`): audio thật trong `samples/` qua `POST /voice` với `recorded_at` cố định.
-- **Cần Loi:** ghi âm bằng Fold 8 (app Ghi âm, xuất m4a), đặt vào `samples/`:
+- **Cần Loi:** ghi âm bằng Fold 8 theo `docs/recording-samples.md`, đặt vào `samples/`:
 
   | File | Câu nói |
   | --- | --- |
