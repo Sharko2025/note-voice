@@ -1,15 +1,15 @@
 # Phase 1 — Backend + AI
 
-Trạng thái: **đang làm** · duyệt 2026-10-19
+Trạng thái: **xong Task 1–9 + nửa Task 10** · duyệt 2026-10-19 · còn nginx + SSL (chờ Loi)
 
 Mục tiêu: backend chạy trên `https://notecamap.s-itpro.com`, `curl` gửi audio thật → nhận đúng danh sách việc (tiêu đề, ngày hạn, giờ nhắc, sao); đủ mọi endpoint trong SPEC mục "API backend".
 
 Checklist SPEC tương ứng:
 
-- [ ] Khởi tạo repo từ expense-voice, Docker Compose, Alembic migration → Task 1–3
-- [ ] `POST /voice`: transcribe + parse + lưu, idempotent theo `entry_id` → Task 4–7
-- [ ] Bộ test parse ở mục Pipeline AI đều qua → Task 6
-- [ ] Các endpoint tasks (4 view), health → Task 8
+- [x] Khởi tạo repo từ expense-voice, Docker Compose, Alembic migration → Task 1–3
+- [x] `POST /voice`: transcribe + parse + lưu, idempotent theo `entry_id` → Task 4–7
+- [x] Bộ test parse ở mục Pipeline AI đều qua → Task 6
+- [x] Các endpoint tasks (4 view), health → Task 8
 - [ ] Deploy lên EC2, nginx + SSL, `curl` từ ngoài gửi audio ra kết quả đúng → Task 9–10
 
 ---
@@ -161,3 +161,12 @@ Schema `Task` trả về: `id, voice_entry_id, title, note, starred, due_date, r
 3. 8 file audio ghi bằng Fold 8 (Task 6).
 4. Tạo DNS `notecamap.s-itpro.com` (Task 10).
 5. Xác nhận trước khi tạo/push repo GitHub, và trước mỗi thao tác nginx/certbot trên server.
+
+## Kết quả (2026-10-19)
+
+- Test: 115 test nhanh + 52 test OpenAI thật (16 câu × 3 lần + 4 test khác) đều qua, chạy 3 lần liền không lỗi. 8 test audio thật đang skip vì chưa có file trong `samples/`.
+- Prompt đã chỉnh so với bản SPEC đầu (đã cập nhật SPEC, **chờ Loi duyệt**, xem `docs/pending-decisions.md`): trường `source` cho từng việc, luật tách việc khi STT mất dấu phẩy, luật "không phải việc", luật giờ đã qua viết rõ hơn. Server dời giờ nhắc đã qua trong ngày sang ngày mai (LLM sai luật này ~1/3 lần).
+- End-to-end bằng audio TTS (chưa có audio ghi trên Fold 8): câu ví dụ đầu SPEC, câu tiếng Anh và câu "trời đẹp" ra đúng; gửi lại cùng `entry_id` trả đúng kết quả cũ; Hoàn tác 204.
+- Server EC2: code ở `~/note-voice` (đẩy qua SSH vào bare repo `~/note-voice.git`, remote `server`), `.env` riêng (`DEVICE_TOKEN` và mật khẩu Postgres mới, chmod 600), container chạy, API chỉ ở `127.0.0.1:8001`, không publish 5432; expense-voice vẫn `ok`.
+- Thời gian trên EC2 (3 lần nói TTS): `stt_ms` 742–1363, `parse_ms` 978–1619, `total_ms` 2078–3034.
+- **Chưa làm** (bị chặn quyền, cần Loi): tạo repo GitHub, cài nginx conf + `certbot`, smoke test qua HTTPS.

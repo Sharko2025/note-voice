@@ -296,10 +296,10 @@ Làm backend trước và test bằng `curl` với audio thu sẵn, sau đó m�
 
 **Phase 1: Backend + AI**
 
-- [ ] Khởi tạo repo từ expense-voice, Docker Compose, Alembic migration
-- [ ] `POST /voice`: transcribe + parse + lưu, idempotent theo `entry_id`
-- [ ] Bộ test parse ở mục Pipeline AI đều qua
-- [ ] Các endpoint tasks (4 view), health
+- [x] Khởi tạo repo từ expense-voice, Docker Compose, Alembic migration
+- [x] `POST /voice`: transcribe + parse + lưu, idempotent theo `entry_id`
+- [x] Bộ test parse ở mục Pipeline AI đều qua
+- [x] Các endpoint tasks (4 view), health
 - [ ] Deploy lên EC2, nginx + SSL, `curl` từ ngoài gửi audio ra kết quả đúng
 
 **Trước Phase 2: Mockup**
