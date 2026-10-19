@@ -165,7 +165,7 @@ Schema `Task` trả về: `id, voice_entry_id, title, note, starred, due_date, r
 ## Kết quả (2026-10-19)
 
 - Test: 115 test nhanh + 52 test OpenAI thật (16 câu × 3 lần + 4 test khác) đều qua, chạy 3 lần liền không lỗi. 8 test audio thật đang skip vì chưa có file trong `samples/`.
-- Prompt đã chỉnh so với bản SPEC đầu (đã cập nhật SPEC, **chờ Loi duyệt**, xem `docs/pending-decisions.md`): trường `source` cho từng việc, luật tách việc khi STT mất dấu phẩy, luật "không phải việc", luật giờ đã qua viết rõ hơn. Server dời giờ nhắc đã qua trong ngày sang ngày mai (LLM sai luật này ~1/3 lần).
+- Prompt đã chỉnh so với bản SPEC đầu (đã cập nhật SPEC, **Loi duyệt 2026-10-19**, xem `docs/pending-decisions.md`): trường `source` cho từng việc, luật tách việc khi STT mất dấu phẩy, luật "không phải việc", luật giờ đã qua viết rõ hơn. Server dời giờ nhắc đã qua trong ngày sang ngày mai (LLM sai luật này ~1/3 lần).
 - End-to-end bằng audio TTS (chưa có audio ghi trên Fold 8): câu ví dụ đầu SPEC, câu tiếng Anh và câu "trời đẹp" ra đúng; gửi lại cùng `entry_id` trả đúng kết quả cũ; Hoàn tác 204.
 - Server EC2: code ở `~/note-voice` (đẩy qua SSH vào bare repo `~/note-voice.git`, remote `server`), `.env` riêng (`DEVICE_TOKEN` và mật khẩu Postgres mới, chmod 600), container chạy, API chỉ ở `127.0.0.1:8001`, không publish 5432; expense-voice vẫn `ok`.
 - Thời gian trên EC2 (3 lần nói TTS): `stt_ms` 742–1363, `parse_ms` 978–1619, `total_ms` 2078–3034.
