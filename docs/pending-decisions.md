@@ -2,6 +2,7 @@
 
 Định dạng: ngày · vấn đề · đề xuất (phương án an toàn đang dùng)
 
-- 2026-10-19 · Parse ra `remind_at` sớm hơn `recorded_at` (ví dụ nói "nhắc 9 giờ sáng nay" lúc 14:30) · Giữ `due_date`, bỏ `remind_at` (không đặt báo thức trong quá khứ).
+- 2026-10-19 · Parse ra `remind_at` sớm hơn `recorded_at` · Cùng ngày nói (ví dụ "nhắc 10 giờ sáng" lúc 14:30) → dời sang ngày mai cùng giờ, `due_date` theo (đúng luật "giờ đã qua → ngày mai" của SPEC; LLM sai ~1/3 lần dù đã thử nhiều cách viết prompt, "9 giờ sáng" sai 4–10/10 lần). LLM đã cho `due_date` muộn hơn hôm nay → dời giờ nhắc sang đúng `due_date`. Còn lại (ngày trước đó) → giữ `due_date`, bỏ `remind_at`. LLM đôi khi trả `due_date` hôm nay nhưng `remind_at` ngày mai → `due_date` theo `remind_at`.
+- 2026-10-19 · Bộ test parse thật: 3 lỗi lần chạy đầu · Đã sửa prompt trong SPEC + code (**chờ Loi duyệt**): (1) luật "giờ đã qua" ghi rõ hơn kèm ví dụ; (2) thêm câu "Chỉ tạo việc khi người nói muốn làm…" vì "the weather is nice today" ra 1 việc 3/3 lần. Câu "buy milk and pay rent on Friday, it's urgent": LLM gán thứ 6 + sao cho cả 2 việc 3/3 lần — câu có 2 cách hiểu nên test bỏ kiểm ngày/sao của "Buy milk" (đã sửa bảng test trong SPEC). Thêm câu test "nhắc tôi 9 giờ sáng gọi mẹ".
 - 2026-10-19 · `GET /tasks` trả việc đã xong không giới hạn số lượng · MVP trả hết (1 người dùng); Ngày của tôi chỉ trả việc xong hôm nay.
 - 2026-10-19 · Thứ tự việc trong danh sách · Mới nhất trước; riêng Đã lên kế hoạch theo `due_date` rồi `remind_at`. Việc trong cùng 1 lần nói giữ đúng thứ tự nói (`created_at = clock_timestamp()` như expense-voice).

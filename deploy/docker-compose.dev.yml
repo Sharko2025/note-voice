@@ -1,0 +1,10 @@
+# Local development only: live-mount the code and create the test database.
+# Enabled locally via deploy/.env (COMPOSE_FILE=docker-compose.yml;docker-compose.dev.yml), never on the server.
+services:
+  api:
+    volumes: ["../backend:/app", "../samples:/app/samples:ro"]
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--no-access-log"]
+  db:
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d:ro

@@ -1,0 +1,3 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["openai: calls the real OpenAI API (costs money)"]

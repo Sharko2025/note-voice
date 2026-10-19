@@ -158,10 +158,10 @@ Quy tắc:
 - Mỗi việc riêng là 1 mục. Một câu có thể có nhiều việc.
 - title: ngắn gọn, viết hoa chữ đầu, giữ nguyên ngôn ngữ người nói, bỏ các từ chỉ thời gian, nhắc nhở và mức độ quan trọng ("nhắc tôi", "mai", "lúc 9 giờ", "quan trọng", "remind me", "tomorrow", "at 3pm").
 - due_date (YYYY-MM-DD): "hôm nay", "mai"/"ngày mai", "ngày kia"/"mốt", "thứ 2".."thứ 7", "chủ nhật" (lần gần nhất sau hôm nay), "tuần sau" (thứ Hai tuần sau), "cuối tuần" (thứ Bảy tới), "20/10", "ngày 25". Tiếng Anh: "today", "tomorrow", "Friday"/"on Friday" (lần gần nhất sau hôm nay), "next week" (thứ Hai tuần sau), "this weekend" (thứ Bảy tới), "Oct 25"/"the 25th". Không nói -> null.
-- remind_at (YYYY-MM-DDTHH:MM, giờ Việt Nam): chỉ khi có giờ cụ thể hoặc có chữ "nhắc". "9 giờ sáng" = 09:00, "3 giờ chiều" = 15:00, "8 giờ tối" = 20:00, "9 rưỡi" = 09:30, "10 giờ kém 15" = 09:45; "3pm" = 15:00, "9:30 am" = 09:30, "noon" = 12:00. Có "nhắc"/"remind" mà chỉ nói buổi: sáng/morning = 08:00, trưa = 12:00, chiều/afternoon = 15:00, tối/evening/tonight = 20:00. Có giờ mà không có ngày: hôm nay nếu giờ đó chưa qua, ngược lại ngày mai. Không nói -> null.
+- remind_at (YYYY-MM-DDTHH:MM, giờ Việt Nam): chỉ khi có giờ cụ thể hoặc có chữ "nhắc". "9 giờ sáng" = 09:00, "3 giờ chiều" = 15:00, "8 giờ tối" = 20:00, "9 rưỡi" = 09:30, "10 giờ kém 15" = 09:45; "3pm" = 15:00, "9:30 am" = 09:30, "noon" = 12:00. Có "nhắc"/"remind" mà chỉ nói buổi: sáng/morning = 08:00, trưa = 12:00, chiều/afternoon = 15:00, tối/evening/tonight = 20:00. Có giờ mà không có ngày: so với giờ bây giờ, giờ đó chưa tới -> hôm nay, đã qua -> ngày mai (ví dụ bây giờ 14:30: "4 giờ chiều" -> hôm nay 16:00, "10 giờ sáng" -> ngày mai 10:00). Không nói -> null.
 - Có remind_at mà không có due_date -> due_date = ngày của remind_at.
 - starred: true nếu nói "quan trọng", "gấp", "ưu tiên", "đánh dấu sao", "important", "urgent", "star it" cho việc đó; ngược lại false.
-- Không có việc nào -> trả tasks rỗng.
+- Chỉ tạo việc khi người nói muốn làm hoặc được nhắc làm một việc. Câu kể, nhận xét, thời tiết ("hôm nay trời đẹp quá", "the weather is nice today") không phải việc. Không có việc nào -> trả tasks rỗng.
 ```
 
 JSON Schema (strict):
@@ -190,7 +190,7 @@ JSON Schema (strict):
 }
 ```
 
-Server kiểm tra lại định dạng ngày giờ sau khi parse; sai định dạng thì bỏ trường đó (để `null`), không bỏ cả việc.
+Server kiểm tra lại định dạng ngày giờ sau khi parse; sai định dạng thì bỏ trường đó (để `null`), không bỏ cả việc. Giờ nhắc rơi vào trước lúc nói trong cùng ngày → server dời sang ngày mai (LLM hay sai luật "giờ đã qua"); bảng test dưới đây kiểm kết quả sau bước này.
 
 **Bộ test bắt buộc** (pytest, gọi API thật, `now` cố định = Thứ Hai 19/10/2026 14:30):
 
@@ -201,13 +201,14 @@ Server kiểm tra lại định dạng ngày giờ sau khi parse; sai định d�
 | nộp báo cáo thứ 6, quan trọng | Nộp báo cáo · 2026-10-23 · null · true |
 | nhắc tôi 4 giờ chiều uống thuốc | Uống thuốc · 2026-10-19 · 2026-10-19T16:00 · false |
 | nhắc tôi 10 giờ sáng đi lấy đồ | (10:00 đã qua) 2026-10-20 · 2026-10-20T10:00 |
+| nhắc tôi 9 giờ sáng gọi mẹ | (09:00 đã qua) Gọi mẹ · 2026-10-20 · 2026-10-20T09:00 |
 | mua sữa cho con, gửi email cho chị Lan chiều mai nhắc tôi | 2 việc: Mua sữa cho con (null); Gửi email cho chị Lan · 2026-10-20 · 2026-10-20T15:00 |
 | ngày kia đóng tiền điện | Đóng tiền điện · 2026-10-21 · null |
 | chủ nhật đi siêu thị 9 rưỡi sáng | Đi siêu thị · 2026-10-25 · 2026-10-25T09:30 |
 | hạn 25/10 nộp thuế, gấp | Nộp thuế · 2026-10-25 · null · true |
 | hôm nay trời đẹp quá | 0 việc → 422 |
 | remind me to call the bank tomorrow at 3pm | Call the bank · 2026-10-20 · 2026-10-20T15:00 · false |
-| buy milk and pay rent on Friday, it's urgent | 2 việc: Buy milk (null); Pay rent · 2026-10-23 · null · true |
+| buy milk and pay rent on Friday, it's urgent | 2 việc: Buy milk (ngày và sao không kiểm, câu có 2 cách hiểu); Pay rent · 2026-10-23 · null · true |
 | the weather is nice today | 0 việc → 422 |
 
 ## Android app
