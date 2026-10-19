@@ -1,0 +1,29 @@
+# Secrets
+.env
+*.jks
+*.keystore
+keystore.properties
+
+# Personal voice samples
+samples/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+
+# Android
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+android/app/schemas/*.tmp
+*.apk
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+android/.kotlin/
