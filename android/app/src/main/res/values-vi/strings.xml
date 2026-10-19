@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Note Cá Mập</string>
+    <string name="app_tagline">Việc cần làm bằng giọng nói</string>
+
+    <!-- Navigation -->
+    <string name="view_my_day">Ngày của tôi</string>
+    <string name="view_important">Quan trọng</string>
+    <string name="view_planned">Đã lên kế hoạch</string>
+    <string name="view_all">Tác vụ</string>
+    <string name="view_notes">Ghi chú</string>
+    <string name="settings">Cài đặt</string>
+    <string name="menu">Menu</string>
+    <string name="back">Quay lại</string>
+    <string name="language_switch">Đổi ngôn ngữ</string>
+
+    <!-- Dates -->
+    <string-array name="weekday_short">
+        <item>T2</item><item>T3</item><item>T4</item><item>T5</item><item>T6</item><item>T7</item><item>CN</item>
+    </string-array>
+    <string-array name="weekday_long">
+        <item>Thứ Hai</item><item>Thứ Ba</item><item>Thứ Tư</item><item>Thứ Năm</item><item>Thứ Sáu</item>
+        <item>Thứ Bảy</item><item>Chủ Nhật</item>
+    </string-array>
+    <string name="pattern_day_month">dd/MM</string>
+    <string name="pattern_day_month_long">d \'tháng\' M</string>
+    <string name="pattern_month_year">\'Tháng\' M, yyyy</string>
+    <string name="date_today">Hôm nay</string>
+    <string name="date_tomorrow">Ngày mai</string>
+    <string name="date_yesterday">Hôm qua</string>
+
+    <!-- Lists -->
+    <string name="add_task">Thêm việc</string>
+    <string name="add_note">Thêm ghi chú</string>
+    <string name="completed">Đã hoàn thành</string>
+    <string name="group_overdue">Quá hạn</string>
+    <string name="group_today">Hôm nay</string>
+    <string name="group_tomorrow">Ngày mai</string>
+    <string name="group_this_week">Tuần này</string>
+    <string name="group_later">Sau này</string>
+    <string name="mark_complete">Đánh dấu hoàn thành</string>
+    <string name="mark_important">Đánh dấu quan trọng</string>
+    <string name="offline_updated">Ngoại tuyến · cập nhật lúc %s</string>
+    <plurals name="queued">
+        <item quantity="other">%d bản ghi đã lưu, sẽ gửi khi có mạng</item>
+    </plurals>
+    <string name="processing">Đang xử lý…</string>
+    <string name="empty_my_day_title">Hôm nay chưa có việc nào</string>
+    <string name="empty_list_title">Chưa có việc nào</string>
+    <string name="empty_body">Nhấn micro và nói việc cần làm, hoặc gõ vào ô bên dưới.</string>
+    <string name="empty_notes_title">Chưa có ghi chú</string>
+    <string name="empty_notes_body">Nhấn micro và nói ý tưởng hoặc câu hay, hoặc gõ vào ô bên dưới.</string>
+    <string name="try_saying">Thử nói</string>
+    <string name="sample_1">“nhắc tôi 4 giờ chiều uống thuốc”</string>
+    <string name="sample_2">“thứ 6 nộp báo cáo, quan trọng”</string>
+
+    <!-- Recording -->
+    <string name="record">Ghi âm</string>
+    <string name="listening">Đang nghe…</string>
+    <string name="stop">Dừng</string>
+    <string name="cancel">Hủy</string>
+    <string name="record_hint">Ví dụ: “mai 9 giờ sáng gọi cho anh Tuấn”</string>
+    <string name="record_hint_notes">Nói ý tưởng hoặc câu hay: “ý tưởng: …”</string>
+    <string name="record_auto_stop">Tự dừng khi bạn ngừng nói</string>
+    <string name="nothing_heard">Không nghe thấy gì</string>
+    <string name="nothing_heard_body">Micro không thu được tiếng nói trong 8 giây.</string>
+    <string name="too_short">Ghi âm quá ngắn</string>
+    <string name="mic_failed">Không mở được micro</string>
+    <string name="need_mic">Cho phép micro để ghi âm</string>
+
+    <!-- Voice results -->
+    <plurals name="task_count">
+        <item quantity="other">%d việc</item>
+    </plurals>
+    <plurals name="note_count">
+        <item quantity="other">%d ghi chú</item>
+    </plurals>
+    <string name="result_added">Đã thêm %s</string>
+    <string name="result_added_both">Đã thêm %1$s, %2$s</string>
+    <string name="result_saved_notes">Đã lưu %s</string>
+    <string name="result_nothing_new">Không có gì mới</string>
+    <string name="heard">“%s”</string>
+    <string name="heard_label">Đã nghe: “%s”</string>
+    <string name="not_understood">Không hiểu, nói lại nhé</string>
+    <string name="say_again">Nói lại</string>
+    <string name="undo">Hoàn tác</string>
+    <string name="recording_missing">Không tìm thấy bản ghi, nói lại nhé</string>
+    <string name="recording_invalid">Bản ghi bị lỗi, nói lại nhé</string>
+
+    <!-- Task details -->
+    <string name="add_to_my_day">Thêm vào Ngày của tôi</string>
+    <string name="in_my_day">Đã thêm vào Ngày của tôi</string>
+    <string name="remind_me">Nhắc tôi</string>
+    <string name="remind_me_at">Nhắc tôi lúc %s</string>
+    <string name="add_due_date">Thêm ngày hạn</string>
+    <string name="due_today">Hạn hôm nay</string>
+    <string name="due_on">Hạn %s</string>
+    <string name="task_note_hint">Thêm ghi chú</string>
+    <string name="created_voice">Tạo bằng giọng nói · %s</string>
+    <string name="created_typed">Tạo lúc %s</string>
+    <string name="delete">Xóa</string>
+    <string name="deleted_task">Đã xóa “%s”</string>
+    <string name="deleted_note">Đã xóa ghi chú</string>
+    <string name="later_today">Muộn hơn hôm nay</string>
+    <string name="tomorrow_opt">Ngày mai</string>
+    <string name="next_week">Tuần sau</string>
+    <string name="pick_date_time">Chọn ngày &amp; giờ</string>
+    <string name="pick_reminder">Chọn ngày &amp; giờ nhắc</string>
+    <string name="pick_due">Chọn ngày hạn</string>
+    <string name="pick_time">Chọn giờ</string>
+    <string name="save">Lưu</string>
+    <string name="remove">Bỏ</string>
+    <string name="previous">Trước</string>
+    <string name="next">Sau</string>
+
+    <!-- Notes -->
+    <string name="filter_all">Tất cả</string>
+    <string name="label_idea">Ý tưởng</string>
+    <string name="label_quote">Câu hay</string>
+    <string name="label_note">Ghi chú</string>
+    <string name="author">Tác giả</string>
+    <string name="author_hint">Ai nói câu này</string>
+    <string name="note_text_hint">Nội dung ghi chú</string>
+    <string name="title_hint">Tên việc</string>
+
+    <!-- Settings -->
+    <string name="settings_server">Máy chủ</string>
+    <string name="server_url">Địa chỉ máy chủ</string>
+    <string name="device_token">Mã thiết bị</string>
+    <string name="language">Ngôn ngữ</string>
+    <string name="queue">Hàng đợi</string>
+    <plurals name="queue_count">
+        <item quantity="other">%d bản ghi đang chờ</item>
+    </plurals>
+    <string name="queue_ok">Đã gửi hết</string>
+    <string name="resend_queue">Gửi lại hàng đợi</string>
+    <string name="queue_resent">Đã gửi lại hàng đợi</string>
+    <string name="save_and_check">Lưu và kiểm tra</string>
+    <string name="checking">Đang kiểm tra…</string>
+    <string name="connection_ok">Kết nối OK</string>
+    <string name="version">Phiên bản %s</string>
+
+    <!-- Errors -->
+    <string name="error_token">Sai mã thiết bị: mở Cài đặt</string>
+    <string name="error_server">Lỗi máy chủ (%d)</string>
+    <string name="error_network">Không có mạng, thử lại</string>
+    <string name="error_generic">Có lỗi xảy ra</string>
+
+    <!-- Notifications -->
+    <string name="channel_result">Kết quả ghi âm</string>
+    <string name="channel_sending">Đang gửi bản ghi</string>
+    <string name="notif_sending">Đang gửi…</string>
+    <string name="notif_offline">Đã lưu, sẽ gửi khi có mạng</string>
+    <string name="notif_token_title">Sai mã thiết bị</string>
+    <string name="notif_token_text">Mở Cài đặt để sửa</string>
+    <string name="notif_undone">Đã hoàn tác</string>
+    <string name="notif_undoing">Đang hoàn tác…</string>
+</resources>

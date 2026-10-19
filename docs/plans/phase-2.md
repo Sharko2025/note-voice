@@ -1,6 +1,6 @@
 # Phase 2 — App Android cơ bản
 
-Trạng thái: **chờ Loi duyệt** · 2026-10-19
+Trạng thái: **code xong, chờ thử trên Fold 8** · Loi duyệt 2026-10-19 (cả 3 quyết định theo đề xuất)
 
 Mục tiêu: app **Note Cá Mập** chạy trên Fold 8, đúng [mockup v3 đã duyệt](https://claude.ai/artifact/5wQsjDRmKu5ZYgYmVjN8Ch). Bốn danh sách việc và màn Ghi chú dùng được bằng tay và bằng giọng nói, ghi âm khi mất mạng không mất lần nào.
 
@@ -236,7 +236,7 @@ Lý do không gọi server riêng cho từng màn: số đếm trong menu cần 
 
 ---
 
-## Quyết định cần Loi
+## Quyết định (Loi chốt 2026-10-19)
 
 1. **Lọc 4 màn trên máy** từ 1 danh sách tải về (Task 5), thay vì gọi server riêng cho từng màn. Có số đếm trong menu và xem được khi mất mạng. Đề xuất: **đồng ý**.
 2. **Gõ việc ở Quan trọng / Đã lên kế hoạch:** Microsoft To Do tự gắn sao (Quan trọng) hoặc đặt hạn hôm nay (Đã lên kế hoạch). SPEC chỉ nói về Ngày của tôi. Đề xuất: **làm giống Microsoft To Do** cho việc gõ tay; việc nói thì chỉ theo `my_day` như SPEC.
@@ -250,4 +250,18 @@ Lý do không gọi server riêng cho từng màn: số đếm trong menu cần 
 
 ## Nhật ký thử trên Fold 8
 
-(chưa có)
+(chưa có: chờ Loi bật Wireless debugging)
+
+## Nhật ký thử trên máy ảo (2026-10-19)
+
+Máy ảo Android 17 (API 37, 1080×2400), app debug trỏ vào server local (`adb reverse`, `http://127.0.0.1:8001`), dữ liệu mẫu giống mockup. 76 unit test Android qua.
+
+- ✅ Icon logo C, màn khởi động, xin quyền micro + thông báo lần đầu; chưa có token → mở thẳng Cài đặt; "Lưu và kiểm tra" → "Kết nối OK".
+- ✅ Ngày của tôi, Quan trọng, Đã lên kế hoạch (5 nhóm), menu bên với số đếm, Ghi chú (chip lọc, thẻ nhãn màu, câu hay có tác giả): khớp mockup v3.
+- ✅ Chi tiết việc: Ngày của tôi, Nhắc tôi (chọn nhanh: Muộn hơn hôm nay 20:00 lúc 16:54, Ngày mai T3 09:00, Tuần sau T2 09:00; lịch tháng làm mờ ngày qua, chip giờ đã qua bị tắt), Ngày hạn, ghi chú tự lưu khi đóng sheet → PATCH đúng.
+- ✅ Gõ việc ở Quan trọng → tự gắn sao; đang gõ thì micro đổi thành ✓. Hoàn thành → vào "Đã hoàn thành". Xóa → snackbar "Đã xóa …" → Hoàn tác khôi phục.
+- ✅ English + giao diện tối; màn rộng (giả lập mở máy) → 3 cột: menu | danh sách | chi tiết.
+- ✅ Ghi âm: sheet "Đang nghe…" có đồng hồ + thanh sóng; 8 s im lặng → "Không nghe thấy gì" + Nói lại (máy ảo không có micro thật).
+- ✅ Giọng thật (file `hai-viec.m4a`, `y-tuong.m4a` của Loi, đưa vào hàng đợi bằng lối vào debug): "Đang xử lý…" → 2 việc tô cam + snackbar "Đã thêm 2 việc" kèm câu đã nghe; ý tưởng → "Đã lưu 1 ghi chú"; Hoàn tác → server `undo` 204. Server local 3,1–4,4 s (gọi OpenAI từ laptop ở VN).
+- ✅ Chế độ máy bay: 3 bản ghi → banner "Ngoại tuyến · cập nhật lúc …" + "3 bản ghi đã lưu, sẽ gửi khi có mạng" → tắt chế độ máy bay → cả 3 lên server (3 `entry_id` khác nhau, mỗi bản đúng số việc/ghi chú, không trùng).
+- Đã sửa trong lúc thử: logo trong menu quá nhỏ; Back đóng menu / về Ngày của tôi thay vì thoát app; ô "Thêm việc" thiếu nhãn trợ năng; khi mất mạng vẫn hiện "Đang xử lý…" (NetworkMonitor báo offline trễ); "Không nghe thấy gì" thêm dòng giải thích + Nói lại như mockup.

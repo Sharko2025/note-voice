@@ -1,0 +1,7 @@
+<resources>
+    <!-- Window background matches the app's light background so there is no white flash on start. -->
+    <style name="Theme.NoteVoice" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/window_background</item>
+    </style>
+    <color name="window_background">#F6F8FB</color>
+</resources>

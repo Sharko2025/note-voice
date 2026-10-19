@@ -405,6 +405,9 @@ Làm backend trước và test bằng `curl` với audio thu sẵn, sau đó m�
 | Báo lại (snooze) | Có trong MVP, cố định 10 phút | Loi chốt 2026-10-19 |
 | Ghi chú (ý tưởng, câu hay) | Có trong MVP. AI tự phân loại: phần không phải việc → ghi chú nguyên văn, không bỏ gì. 1 mục Ghi chú chung, nhãn Ý tưởng / Câu hay / Ghi chú | Loi chốt 2026-10-19 (phương án A, 1 mục chung, mockup v3) |
 | Cách mở app | App bình thường, micro trong danh sách | Giống Microsoft To Do; không cần màn hình khóa/phím bên |
+| Lọc 4 màn hình | App tải 1 danh sách (`view=all`) rồi tự lọc theo bảng "Định nghĩa các màn hình" | Loi chốt 2026-10-19; có số đếm trong menu, xem được khi mất mạng |
+| Gõ việc ở Quan trọng / Đã lên kế hoạch | Tự gắn sao / đặt hạn hôm nay như Microsoft To Do (việc nói chỉ theo `my_day`) | Loi chốt 2026-10-19 |
+| Kết quả ghi âm | App đang mở → snackbar; app đã đóng → notification kèm Hoàn tác | Loi chốt 2026-10-19 |
 | Nhắc việc | Báo thức trên máy, không push từ server | 1 thiết bị, không cần FCM |
 | Thời gian tương đối | Tính theo `recorded_at`, không theo lúc server nhận | Nói offline hôm qua "mai" vẫn ra đúng ngày |
 | Code | Tái dùng tối đa từ expense-voice (xem `docs/reuse-from-expense-voice.md`) | Đã chạy ổn trên Fold 8 |

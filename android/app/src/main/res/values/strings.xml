@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- English is the resource default; Vietnamese lives in values-vi (the app starts in Vietnamese, AppLanguage).
+     Keep both files in sync (StringsCompletenessTest). -->
+<resources>
+    <string name="app_name">Sharko Notes</string>
+    <!-- Name under the launcher icon: always Vietnamese (SPEC); the in-app title follows the app language. -->
+    <string name="launcher_name" translatable="false">Note Cá Mập</string>
+    <string name="app_tagline">Voice to-do</string>
+
+    <!-- Navigation -->
+    <string name="view_my_day">My Day</string>
+    <string name="view_important">Important</string>
+    <string name="view_planned">Planned</string>
+    <string name="view_all">Tasks</string>
+    <string name="view_notes">Notes</string>
+    <string name="settings">Settings</string>
+    <string name="menu">Menu</string>
+    <string name="back">Back</string>
+    <string name="language_switch">Change language</string>
+
+    <!-- Dates: weekdays Monday first -->
+    <string-array name="weekday_short">
+        <item>Mon</item><item>Tue</item><item>Wed</item><item>Thu</item><item>Fri</item><item>Sat</item><item>Sun</item>
+    </string-array>
+    <string-array name="weekday_long">
+        <item>Monday</item><item>Tuesday</item><item>Wednesday</item><item>Thursday</item><item>Friday</item>
+        <item>Saturday</item><item>Sunday</item>
+    </string-array>
+    <string name="pattern_day_month">MMM d</string>
+    <string name="pattern_day_month_long">MMMM d</string>
+    <string name="pattern_month_year">MMMM yyyy</string>
+    <string name="date_today">Today</string>
+    <string name="date_tomorrow">Tomorrow</string>
+    <string name="date_yesterday">Yesterday</string>
+
+    <!-- Lists -->
+    <string name="add_task">Add a task</string>
+    <string name="add_note">Add a note</string>
+    <string name="completed">Completed</string>
+    <string name="group_overdue">Overdue</string>
+    <string name="group_today">Today</string>
+    <string name="group_tomorrow">Tomorrow</string>
+    <string name="group_this_week">This week</string>
+    <string name="group_later">Later</string>
+    <string name="mark_complete">Mark as complete</string>
+    <string name="mark_important">Mark as important</string>
+    <string name="offline_updated">Offline · updated %s</string>
+    <plurals name="queued">
+        <item quantity="one">%d recording saved, will send when online</item>
+        <item quantity="other">%d recordings saved, will send when online</item>
+    </plurals>
+    <string name="processing">Processing…</string>
+    <string name="empty_my_day_title">Nothing planned for today</string>
+    <string name="empty_list_title">No tasks here</string>
+    <string name="empty_body">Tap the mic and say what you need to do, or type it below.</string>
+    <string name="empty_notes_title">No notes yet</string>
+    <string name="empty_notes_body">Tap the mic and say an idea or a good quote, or type it below.</string>
+    <string name="try_saying">Try saying</string>
+    <string name="sample_1">“remind me to take my medicine at 4pm”</string>
+    <string name="sample_2">“submit the report on Friday, it\'s important”</string>
+
+    <!-- Recording -->
+    <string name="record">Record</string>
+    <string name="listening">Listening…</string>
+    <string name="stop">Stop</string>
+    <string name="cancel">Cancel</string>
+    <string name="record_hint">Try: “remind me to call the bank tomorrow at 3pm”</string>
+    <string name="record_hint_notes">Say an idea or a quote: “idea: …”</string>
+    <string name="record_auto_stop">Stops by itself when you stop talking</string>
+    <string name="nothing_heard">Didn\'t hear anything</string>
+    <string name="nothing_heard_body">The mic picked up no speech for 8 seconds.</string>
+    <string name="too_short">Recording too short</string>
+    <string name="mic_failed">Couldn\'t start the microphone</string>
+    <string name="need_mic">Allow the microphone to record</string>
+
+    <!-- Voice results -->
+    <plurals name="task_count">
+        <item quantity="one">%d task</item>
+        <item quantity="other">%d tasks</item>
+    </plurals>
+    <plurals name="note_count">
+        <item quantity="one">%d note</item>
+        <item quantity="other">%d notes</item>
+    </plurals>
+    <string name="result_added">Added %s</string>
+    <string name="result_added_both">Added %1$s, %2$s</string>
+    <string name="result_saved_notes">Saved %s</string>
+    <string name="result_nothing_new">Nothing new</string>
+    <string name="heard">“%s”</string>
+    <string name="heard_label">Heard: “%s”</string>
+    <string name="not_understood">Didn\'t catch that, try again</string>
+    <string name="say_again">Try again</string>
+    <string name="undo">Undo</string>
+    <string name="recording_missing">Recording missing, say it again</string>
+    <string name="recording_invalid">Couldn\'t use the recording, say it again</string>
+
+    <!-- Task details -->
+    <string name="add_to_my_day">Add to My Day</string>
+    <string name="in_my_day">Added to My Day</string>
+    <string name="remind_me">Remind me</string>
+    <string name="remind_me_at">Remind me at %s</string>
+    <string name="add_due_date">Add due date</string>
+    <string name="due_today">Due today</string>
+    <string name="due_on">Due %s</string>
+    <string name="task_note_hint">Add a note</string>
+    <string name="created_voice">Created by voice · %s</string>
+    <string name="created_typed">Created · %s</string>
+    <string name="delete">Delete</string>
+    <string name="deleted_task">Deleted “%s”</string>
+    <string name="deleted_note">Note deleted</string>
+    <string name="later_today">Later today</string>
+    <string name="tomorrow_opt">Tomorrow</string>
+    <string name="next_week">Next week</string>
+    <string name="pick_date_time">Pick a date &amp; time</string>
+    <string name="pick_reminder">Pick a reminder date &amp; time</string>
+    <string name="pick_due">Pick a due date</string>
+    <string name="pick_time">Pick a time</string>
+    <string name="save">Save</string>
+    <string name="remove">Remove</string>
+    <string name="previous">Previous</string>
+    <string name="next">Next</string>
+
+    <!-- Notes -->
+    <string name="filter_all">All</string>
+    <string name="label_idea">Idea</string>
+    <string name="label_quote">Quote</string>
+    <string name="label_note">Note</string>
+    <string name="author">Author</string>
+    <string name="author_hint">Who said it</string>
+    <string name="note_text_hint">Write the note</string>
+    <string name="title_hint">Task title</string>
+
+    <!-- Settings -->
+    <string name="settings_server">Server</string>
+    <string name="server_url">Server address</string>
+    <string name="device_token">Device token</string>
+    <string name="language">Language</string>
+    <string name="language_vi" translatable="false">Tiếng Việt</string>
+    <string name="language_en" translatable="false">English</string>
+    <string name="queue">Queue</string>
+    <plurals name="queue_count">
+        <item quantity="one">%d recording waiting</item>
+        <item quantity="other">%d recordings waiting</item>
+    </plurals>
+    <string name="queue_ok">All sent</string>
+    <string name="resend_queue">Resend queue</string>
+    <string name="queue_resent">Queue resent</string>
+    <string name="save_and_check">Save and check</string>
+    <string name="checking">Checking…</string>
+    <string name="connection_ok">Connection OK</string>
+    <string name="version">Version %s</string>
+
+    <!-- Errors -->
+    <string name="error_token">Wrong device token: open Settings</string>
+    <string name="error_server">Server error (%d)</string>
+    <string name="error_network">No connection, try again</string>
+    <string name="error_generic">Something went wrong</string>
+
+    <!-- Notifications -->
+    <string name="channel_result">Voice results</string>
+    <string name="channel_sending">Sending recordings</string>
+    <string name="notif_sending">Sending…</string>
+    <string name="notif_offline">Saved, will send when online</string>
+    <string name="notif_token_title">Wrong device token</string>
+    <string name="notif_token_text">Open Settings to fix it</string>
+    <string name="notif_undone">Undone</string>
+    <string name="notif_undoing">Undoing…</string>
+</resources>
