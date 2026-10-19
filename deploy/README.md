@@ -27,9 +27,7 @@ Run long steps inside `tmux new -s nv`. Steps marked ⚠ change shared server co
 dig +short notecamap.s-itpro.com              # must print 54.251.52.235
 
 # 2. Code + secrets (separate folder from ~/expense-voice)
-#    Code comes over SSH (no GitHub repo yet): on the server `git init --bare ~/note-voice.git`,
-#    locally `git remote add server 54.251.52.235:note-voice.git && git push server main`, then:
-git clone ~/note-voice.git ~/note-voice
+git clone https://github.com/Sharko2025/note-voice.git ~/note-voice
 cd ~/note-voice
 cp .env.example .env && chmod 600 .env        # set DEVICE_TOKEN, OPENAI_*, POSTGRES_*, DATABASE_URL
 #   DEVICE_TOKEN:      python3 -c "import secrets;print(secrets.token_urlsafe(32))"   (not the expense-voice one)
@@ -57,7 +55,7 @@ sudo certbot --nginx -d notecamap.s-itpro.com
 ## Update
 
 ```bash
-# locally: git push server main
+# locally: git push
 cd ~/note-voice && git pull
 cd deploy && docker compose up -d --build && docker compose exec api alembic upgrade head
 ```
