@@ -72,7 +72,7 @@ def process_voice(
         stage = "store"
         raw_tasks, raw_notes = raw["tasks"], raw["notes"]
         if data.as_note:
-            raw_tasks, raw_notes = [], tasks_as_notes(raw_tasks) + raw_notes
+            raw_tasks, raw_notes = [], tasks_as_notes(raw_tasks, raw_notes) + raw_notes
         my_day_date = vn_date(data.recorded_at) if data.my_day else None
         tasks = []
         for draft in normalize(raw_tasks, data.recorded_at):

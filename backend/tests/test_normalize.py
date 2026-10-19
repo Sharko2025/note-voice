@@ -186,3 +186,11 @@ def test_tasks_as_notes_use_spoken_source():
         ("mua sữa", "note", None),  # no source: fall back to the title
     ]
     assert [n.starred for n in normalize_notes(out)] == [True, False]
+
+
+def test_tasks_as_notes_drops_duplicates():
+    task = {"source": "gọi cho anh Tuấn hỏi về hợp đồng", "title": "Gọi cho anh Tuấn", "due_date": None,
+            "remind_at": None, "starred": False}
+    model_note = {"source": "x", "text": "Gọi cho anh Tuấn hỏi về hợp đồng.", "label": "idea", "author": None}
+    assert len(tasks_as_notes([task, dict(task)])) == 1  # the model sometimes repeats the same span
+    assert tasks_as_notes([task], [model_note]) == []  # already returned as a note

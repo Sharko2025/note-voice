@@ -68,7 +68,7 @@ def parse(text, as_note=False):
     raw = get_parser().parse(text, NOW, as_note)
     raw_tasks, raw_notes = raw["tasks"], raw["notes"]
     if as_note:
-        raw_tasks, raw_notes = [], tasks_as_notes(raw_tasks) + raw_notes
+        raw_tasks, raw_notes = [], tasks_as_notes(raw_tasks, raw_notes) + raw_notes
     tasks = [
         {
             "title": d.title,

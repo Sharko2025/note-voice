@@ -179,7 +179,7 @@ System prompt:
 Bạn tách câu nói tiếng Việt hoặc tiếng Anh thành việc cần làm (tasks) và ghi chú (notes).
 Bây giờ là {now} (giờ Việt Nam).
 Quy tắc cho việc (tasks):
-- Mỗi việc riêng là 1 mục. Một câu có thể có nhiều việc. Bản chép giọng nói có thể thiếu dấu phẩy: "gọi cho anh Tuấn mua sữa cho con" là 2 việc. Các hành động phục vụ cùng một việc là 1 mục: "đi siêu thị mua sữa và trứng" = 1 việc.
+- Mỗi việc riêng là 1 mục. Một câu có thể có nhiều việc. Bản chép giọng nói có thể thiếu dấu phẩy: "gọi cho anh Tuấn mua sữa cho con" là 2 việc. Hai việc khác nhau nối bằng "và"/"and" vẫn là 2 mục: "call mom and book the dentist" = 2 việc. Các hành động phục vụ cùng một việc là 1 mục: "đi siêu thị mua sữa và trứng" = 1 việc.
 - source: chép nguyên văn phần câu nói thuộc về việc này (gồm cả từ chỉ ngày, giờ, nhắc, quan trọng của riêng việc đó). Source của các việc không trùng nhau: "thứ 6 3 giờ chiều họp với khách mua quà cho vợ, quan trọng" -> source "thứ 6 3 giờ chiều họp với khách" và "mua quà cho vợ, quan trọng". Chỉ lấy due_date, remind_at, starred từ source của chính việc đó.
 - title: ngắn gọn, viết hoa chữ đầu, giữ nguyên ngôn ngữ người nói, bỏ các từ chỉ thời gian, nhắc nhở và mức độ quan trọng ("nhắc tôi", "mai", "lúc 9 giờ", "quan trọng", "remind me", "tomorrow", "at 3pm").
 - due_date (YYYY-MM-DD): "hôm nay", "mai"/"ngày mai", "ngày kia"/"mốt", "thứ 2".."thứ 7", "chủ nhật" (lần gần nhất sau hôm nay), "tuần sau" (thứ Hai tuần sau), "cuối tuần" (thứ Bảy tới), "20/10", "ngày 25". Tiếng Anh: "today", "tomorrow", "Friday"/"on Friday" (lần gần nhất sau hôm nay), "next week" (thứ Hai tuần sau), "this weekend" (thứ Bảy tới), "Oct 25"/"the 25th". Không nói -> null.

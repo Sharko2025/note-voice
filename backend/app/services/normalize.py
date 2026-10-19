@@ -58,16 +58,28 @@ def normalize_notes(items: list) -> list[NoteDraft]:
     return drafts
 
 
-def tasks_as_notes(items: list) -> list[dict]:
-    """as_note mode: a task the model returned anyway becomes a note of what was said (SPEC: Pipeline AI)."""
+def tasks_as_notes(items: list, existing_notes: list = ()) -> list[dict]:
+    """as_note mode: a task the model returned anyway becomes a note of what was said (SPEC: Pipeline AI).
+
+    The model sometimes repeats one span as two tasks, or returns it as a note too: keep each text once.
+    """
+    seen = {_note_key(n.get("text")) for n in existing_notes if isinstance(n, dict)}
     notes = []
     for item in items:
         if not isinstance(item, dict):
             continue
         source = item.get("source")
         text = source if isinstance(source, str) and source.strip() else item.get("title")
+        key = _note_key(text)
+        if not key or key in seen:
+            continue
+        seen.add(key)
         notes.append({"text": text, "label": "note", "author": None, "starred": item.get("starred") is True})
     return notes
+
+
+def _note_key(text) -> str:
+    return " ".join(text.lower().split()).rstrip(".!?…") if isinstance(text, str) else ""
 
 
 def clean_author(value) -> str | None:
