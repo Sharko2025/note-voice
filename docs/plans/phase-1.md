@@ -1,6 +1,6 @@
 # Phase 1 — Backend + AI
 
-Trạng thái: **xong Task 1–9 + nửa Task 10** · duyệt 2026-10-19 · còn nginx + SSL (chờ Loi)
+Trạng thái: **hoàn thành** · duyệt 2026-10-19 · xong 2026-10-19
 
 Mục tiêu: backend chạy trên `https://notecamap.s-itpro.com`, `curl` gửi audio thật → nhận đúng danh sách việc (tiêu đề, ngày hạn, giờ nhắc, sao); đủ mọi endpoint trong SPEC mục "API backend".
 
@@ -10,7 +10,7 @@ Checklist SPEC tương ứng:
 - [x] `POST /voice`: transcribe + parse + lưu, idempotent theo `entry_id` → Task 4–7
 - [x] Bộ test parse ở mục Pipeline AI đều qua → Task 6
 - [x] Các endpoint tasks (4 view), health → Task 8
-- [ ] Deploy lên EC2, nginx + SSL, `curl` từ ngoài gửi audio ra kết quả đúng → Task 9–10
+- [x] Deploy lên EC2, nginx + SSL, `curl` từ ngoài gửi audio ra kết quả đúng → Task 9–10
 
 ---
 
@@ -169,4 +169,6 @@ Schema `Task` trả về: `id, voice_entry_id, title, note, starred, due_date, r
 - End-to-end bằng audio TTS (chưa có audio ghi trên Fold 8): câu ví dụ đầu SPEC, câu tiếng Anh và câu "trời đẹp" ra đúng; gửi lại cùng `entry_id` trả đúng kết quả cũ; Hoàn tác 204.
 - Server EC2: code ở `~/note-voice` (đẩy qua SSH vào bare repo `~/note-voice.git`, remote `server`), `.env` riêng (`DEVICE_TOKEN` và mật khẩu Postgres mới, chmod 600), container chạy, API chỉ ở `127.0.0.1:8001`, không publish 5432; expense-voice vẫn `ok`.
 - Thời gian trên EC2 (3 lần nói TTS): `stt_ms` 742–1363, `parse_ms` 978–1619, `total_ms` 2078–3034.
-- **Chưa làm** (bị chặn quyền, cần Loi): tạo repo GitHub, cài nginx conf + `certbot`, smoke test qua HTTPS.
+- nginx + SSL: Loi chạy 2026-10-19. Chứng chỉ Let's Encrypt hết hạn 2027-01-17 (certbot tự gia hạn).
+- Production `https://notecamap.s-itpro.com` (2026-10-19): health OK, HTTP → HTTPS 301, thiếu token → 401, expense-voice vẫn OK. Gửi audio TTS từ máy local qua HTTPS: 200 trong 3,1 s (2 việc đúng ngày/giờ/sao), gửi lại cùng `entry_id` 0,3 s cùng kết quả, Hoàn tác 204. DB production không còn việc nào (đã hoàn tác hết).
+- Còn mở: repo GitHub (xem pending-decisions); test audio thật khi Loi có file mẫu.

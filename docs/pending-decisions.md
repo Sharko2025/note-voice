@@ -7,4 +7,4 @@
 - 2026-10-19 · `GET /tasks` trả việc đã xong không giới hạn số lượng · MVP trả hết (1 người dùng); Ngày của tôi chỉ trả việc xong hôm nay.
 - 2026-10-19 · Thứ tự việc trong danh sách · Mới nhất trước; riêng Đã lên kế hoạch theo `due_date` rồi `remind_at`. Việc trong cùng 1 lần nói giữ đúng thứ tự nói (`created_at = clock_timestamp()` như expense-voice).
 - 2026-10-19 · Repo GitHub `Sharko2025/note-voice` chưa tạo (expense-voice để public) · Đề xuất private. Tạm thời server lấy code qua SSH: `git push server main` rồi `git pull` trong `~/note-voice`.
-- 2026-10-19 · nginx + SSL cho `notecamap.s-itpro.com` chưa cài (thay đổi cấu hình dùng chung trên server) · Loi chạy các lệnh trong `deploy/README.md` bước 5–6.
+- 2026-10-19 · nginx + SSL cho `notecamap.s-itpro.com` · **Xong** — Loi chạy 2026-10-19.
