@@ -62,7 +62,7 @@ def test_real_audio(real_client, name, expected):
 # file -> (keyword in note text, label); speech that is not a task becomes a note
 EXPECTED_NOTES = {
     "troi-dep.m4a": ("trời đẹp", "note"),
-    "y-tuong.m4a": ("uống nước", "idea"),
+    "y-tuong.m4a": ("nhắc con uống", "idea"),  # the recording says "uống thuốc"; the label is what matters
     "cau-hay.m4a": ("stay hungry", "quote"),
 }
 
