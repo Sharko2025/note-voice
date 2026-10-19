@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from app import timeutil
 from app.config import get_settings
 from app.db import get_db
-from app.schemas import TaskOut, VoiceResult
+from app.schemas import NoteOut, TaskOut, VoiceResult
 from app.services.errors import AIServiceError
 from app.services.parser import TaskParser, get_parser
 from app.services.stt import Transcriber, get_transcriber
@@ -42,6 +42,7 @@ def post_voice(
     entry_id: uuid.UUID = Form(...),
     recorded_at: str = Form(...),
     my_day: bool = Form(False),
+    as_note: bool = Form(False),
     db: Session = Depends(get_db),
     transcriber: Transcriber = Depends(get_transcriber),
     parser: TaskParser = Depends(get_parser),
@@ -57,7 +58,7 @@ def post_voice(
     if len(audio) > limit:
         raise HTTPException(422, "File ghi âm quá lớn")
 
-    data = VoiceInput(entry_id, when, audio, _audio_suffix(file.filename), my_day)
+    data = VoiceInput(entry_id, when, audio, _audio_suffix(file.filename), my_day, as_note)
     try:
         result = process_voice(db, data, transcriber, parser, started)
     except AIServiceError:
@@ -72,4 +73,5 @@ def post_voice(
         entry_id=entry_id,
         raw_text=result.entry.raw_text,
         tasks=[TaskOut.from_model(t, today) for t in result.tasks],
+        notes=[NoteOut.from_model(n) for n in result.notes],
     )

@@ -11,8 +11,8 @@ from sqlalchemy import and_, func, or_, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
-from app.models import Task, VoiceEntry
-from app.services.normalize import normalize
+from app.models import Note, Task, VoiceEntry
+from app.services.normalize import normalize, normalize_notes, tasks_as_notes
 from app.services.parser import TaskParser
 from app.services.stt import Transcriber
 from app.timeutil import vn_date
@@ -22,8 +22,8 @@ STALE_AFTER = timedelta(minutes=2)
 
 
 class Outcome(enum.Enum):
-    OK = "ok"  # tasks created (or replayed)
-    EMPTY = "empty"  # parsed, but no task found in the speech
+    OK = "ok"  # tasks and/or notes created (or replayed)
+    EMPTY = "empty"  # parsed, but nothing found in the speech
     BUSY = "busy"  # another request is processing this entry right now
 
 
@@ -32,6 +32,7 @@ class ProcessResult:
     outcome: Outcome
     entry: VoiceEntry | None = None
     tasks: list[Task] = field(default_factory=list)
+    notes: list[Note] = field(default_factory=list)
 
 
 @dataclass
@@ -41,6 +42,7 @@ class VoiceInput:
     audio: bytes
     suffix: str
     my_day: bool = False
+    as_note: bool = False  # recorded on the Notes screen: everything becomes a note
 
 
 def process_voice(
@@ -64,13 +66,16 @@ def process_voice(
 
         stage = "parse"
         t0 = time.perf_counter()
-        raw = parser.parse(raw_text, data.recorded_at)
+        raw = parser.parse(raw_text, data.recorded_at, data.as_note)
         entry.parse_ms = _ms(t0)
 
         stage = "store"
+        raw_tasks, raw_notes = raw["tasks"], raw["notes"]
+        if data.as_note:
+            raw_tasks, raw_notes = [], tasks_as_notes(raw_tasks) + raw_notes
         my_day_date = vn_date(data.recorded_at) if data.my_day else None
         tasks = []
-        for draft in normalize(raw, data.recorded_at):
+        for draft in normalize(raw_tasks, data.recorded_at):
             row = Task(
                 voice_entry_id=entry.id,
                 title=draft.title,
@@ -83,6 +88,19 @@ def process_voice(
             db.add(row)
             db.flush()
             tasks.append(row)
+        notes = []
+        for draft in normalize_notes(raw_notes):
+            row = Note(
+                voice_entry_id=entry.id,
+                text=draft.text,
+                label=draft.label,
+                author=draft.author,
+                starred=draft.starred,
+                created_at=func.clock_timestamp(),
+            )
+            db.add(row)
+            db.flush()
+            notes.append(row)
         entry.status = "parsed"
         entry.total_ms = _ms(started)
         db.commit()
@@ -90,9 +108,9 @@ def process_voice(
         _mark_failed(db, data.entry_id, f"{stage}: {type(e).__name__}: {e}"[:500], started)
         raise
 
-    for row in tasks:
+    for row in tasks + notes:
         db.refresh(row)
-    return ProcessResult(Outcome.OK if tasks else Outcome.EMPTY, entry, tasks)
+    return ProcessResult(Outcome.OK if tasks or notes else Outcome.EMPTY, entry, tasks, notes)
 
 
 def _claim(db: Session, data: VoiceInput) -> bool:
@@ -133,12 +151,16 @@ def _claim(db: Session, data: VoiceInput) -> bool:
 
 
 def _replay(db: Session, entry: VoiceEntry) -> ProcessResult:
-    all_rows = list(
-        db.scalars(select(Task).where(Task.voice_entry_id == entry.id).order_by(Task.created_at, Task.id))
-    )
-    if not all_rows:
+    tasks = list(db.scalars(select(Task).where(Task.voice_entry_id == entry.id).order_by(Task.created_at, Task.id)))
+    notes = list(db.scalars(select(Note).where(Note.voice_entry_id == entry.id).order_by(Note.created_at, Note.id)))
+    if not tasks and not notes:
         return ProcessResult(Outcome.EMPTY, entry)
-    return ProcessResult(Outcome.OK, entry, [t for t in all_rows if t.deleted_at is None])
+    return ProcessResult(
+        Outcome.OK,
+        entry,
+        [t for t in tasks if t.deleted_at is None],
+        [n for n in notes if n.deleted_at is None],
+    )
 
 
 def _transcribe(transcriber: Transcriber, data: VoiceInput) -> str:

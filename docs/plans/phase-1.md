@@ -110,7 +110,9 @@ Hàm thuần `normalize(items, recorded_at) -> list[TaskDraft]`, không gọi m�
   | `bao-cao-thu-6.m4a` | nộp báo cáo thứ 6, quan trọng |
   | `hai-viec.m4a` | mua sữa cho con, gửi email cho chị Lan chiều mai nhắc tôi |
   | `sieu-thi-chu-nhat.m4a` | chủ nhật đi siêu thị 9 rưỡi sáng |
-  | `troi-dep.m4a` | hôm nay trời đẹp quá |
+  | `troi-dep.m4a` | hôm nay trời đẹp quá (→ 1 ghi chú) |
+  | `y-tuong.m4a` | ý tưởng: làm app nhắc con uống nước (→ 1 ghi chú Ý tưởng) |
+  | `cau-hay.m4a` | câu hay của Steve Jobs: stay hungry, stay foolish (→ 1 ghi chú Câu hay) |
   | `call-bank.m4a` | remind me to call the bank tomorrow at 3pm |
   | `milk-rent.m4a` | buy milk and pay rent on Friday, it's urgent |
 

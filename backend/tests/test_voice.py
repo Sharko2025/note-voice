@@ -4,7 +4,7 @@ from datetime import date, datetime, timedelta, timezone
 import pytest
 from sqlalchemy import func, select, text
 
-from app.models import Task, VoiceEntry
+from app.models import Note, Task, VoiceEntry
 from app.services.errors import AIServiceError
 
 RECORDED_AT = "2026-10-19T14:30:00+07:00"
@@ -48,9 +48,10 @@ def test_creates_tasks_in_spoken_order(client, auth, db, stt, parser):
 
 def test_parser_gets_recorded_at_as_now(client, auth, stt, parser):
     post_voice(client, auth)
-    text_arg, now = parser.calls[0]
+    text_arg, now, as_note = parser.calls[0]
     assert text_arg == stt.text
     assert now == datetime.fromisoformat(RECORDED_AT)
+    assert as_note is False
 
 
 def test_my_day_sets_my_day_date_to_recorded_day(client, auth, db, stt, parser):
@@ -93,23 +94,87 @@ def test_resend_after_undo_returns_remaining_tasks(client, auth, db, stt, parser
     assert len(stt.calls) == 1
 
 
-def test_no_tasks_returns_422_with_raw_text(client, auth, db, stt, parser):
-    stt.text, parser.tasks = "hôm nay trời đẹp quá", []
+def test_nothing_found_returns_422_with_raw_text(client, auth, db, stt, parser):
+    stt.text, parser.tasks = "ừm… à…", []
     entry_id, resp = post_voice(client, auth)
 
     assert resp.status_code == 422
-    assert resp.json() == {"detail": "Không hiểu, nói lại nhé", "raw_text": "hôm nay trời đẹp quá"}
+    assert resp.json() == {"detail": "Không hiểu, nói lại nhé", "raw_text": "ừm… à…"}
     assert db.get(VoiceEntry, uuid.UUID(entry_id)).status == "parsed"
-    assert count(db, Task) == 0
+    assert count(db, Task) == 0 and count(db, Note) == 0
 
 
 def test_resend_after_422_does_not_call_openai_again(client, auth, stt, parser):
-    stt.text, parser.tasks = "hôm nay trời đẹp quá", []
+    stt.text, parser.tasks = "ừm… à…", []
     entry_id, _ = post_voice(client, auth)
     _, resp = post_voice(client, auth, entry_id=entry_id)
     assert resp.status_code == 422
-    assert resp.json()["raw_text"] == "hôm nay trời đẹp quá"
+    assert resp.json()["raw_text"] == "ừm… à…"
     assert len(stt.calls) == 1 and len(parser.calls) == 1
+
+
+# ---------- notes ----------
+
+def test_only_notes_returns_200(client, auth, db, stt, parser):
+    stt.text, parser.tasks = "hôm nay trời đẹp quá", []
+    parser.notes = [{"source": "hôm nay trời đẹp quá", "text": "hôm nay trời đẹp quá", "label": "note", "author": None}]
+    entry_id, resp = post_voice(client, auth)
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["tasks"] == []
+    [note] = body["notes"]
+    assert (note["text"], note["label"], note["author"], note["starred"]) == ("Hôm nay trời đẹp quá", "note", None, False)
+    assert note["voice_entry_id"] == entry_id
+    assert count(db, Note) == 1
+
+
+def test_tasks_and_notes_from_one_recording(client, auth, db, stt, parser):
+    parser.tasks = [{"title": "Gọi anh Tuấn", "due_date": "2026-10-20", "remind_at": "2026-10-20T09:00", "starred": False}]
+    parser.notes = [
+        {"source": "ý tưởng là thêm chế độ tối", "text": "Thêm chế độ tối cho app", "label": "idea", "author": None},
+        {"source": "câu của Steve Jobs", "text": "Stay hungry, stay foolish", "label": "quote", "author": " Steve Jobs "},
+    ]
+    _, resp = post_voice(client, auth)
+
+    body = resp.json()
+    assert [t["title"] for t in body["tasks"]] == ["Gọi anh Tuấn"]
+    assert [(n["text"], n["label"], n["author"]) for n in body["notes"]] == [
+        ("Thêm chế độ tối cho app", "idea", None),
+        ("Stay hungry, stay foolish", "quote", "Steve Jobs"),
+    ]
+
+
+def test_as_note_flag_reaches_parser_and_tasks_become_notes(client, auth, db, stt, parser):
+    stt.text = "gọi cho anh Tuấn hỏi về hợp đồng"
+    parser.tasks = [{"source": "gọi cho anh Tuấn hỏi về hợp đồng", "title": "Gọi cho anh Tuấn",
+                     "due_date": "2026-10-20", "remind_at": None, "starred": True}]
+    _, resp = post_voice(client, auth, as_note="true")
+
+    assert parser.calls[0][2] is True
+    body = resp.json()
+    assert body["tasks"] == []
+    [note] = body["notes"]
+    assert (note["text"], note["label"], note["starred"]) == ("Gọi cho anh Tuấn hỏi về hợp đồng", "note", True)
+    assert count(db, Task) == 0
+
+
+def test_resend_replays_notes(client, auth, db, stt, parser):
+    parser.notes = [{"source": "a", "text": "Ý tưởng một", "label": "idea", "author": None}]
+    entry_id, first = post_voice(client, auth)
+    _, second = post_voice(client, auth, entry_id=entry_id)
+    assert second.json() == first.json()
+    assert len(parser.calls) == 1 and count(db, Note) == 1
+
+
+def test_resend_after_undo_of_notes_only_entry_is_200_and_empty(client, auth, db, stt, parser):
+    parser.tasks = []
+    parser.notes = [{"source": "a", "text": "Ý tưởng một", "label": "idea", "author": None}]
+    entry_id, _ = post_voice(client, auth)
+    db.execute(text("UPDATE notes SET deleted_at = now()"))
+    _, resp = post_voice(client, auth, entry_id=entry_id)
+    assert resp.status_code == 200
+    assert resp.json()["notes"] == [] and resp.json()["tasks"] == []
 
 
 def test_invalid_rows_from_llm_are_dropped(client, auth, stt, parser):

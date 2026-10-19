@@ -16,7 +16,7 @@ TASK_COLUMNS = {
 
 def test_tables_exist(engine):
     names = set(inspect(engine).get_table_names())
-    assert {"voice_entries", "tasks"} <= names
+    assert {"voice_entries", "tasks", "notes"} <= names
     assert {c["name"] for c in inspect(engine).get_columns("tasks")} == TASK_COLUMNS
 
 
@@ -63,6 +63,41 @@ def test_deleting_entry_cascades_to_tasks(db):
 def test_downgrade_then_upgrade_is_clean(engine):
     cfg = alembic_config()
     command.downgrade(cfg, "base")
-    assert "tasks" not in inspect(engine).get_table_names()
+    assert not {"tasks", "notes"} & set(inspect(engine).get_table_names())
     command.upgrade(cfg, "head")
-    assert "tasks" in inspect(engine).get_table_names()
+    assert {"tasks", "notes"} <= set(inspect(engine).get_table_names())
+
+
+NOTE_COLUMNS = {"id", "voice_entry_id", "text", "label", "author", "starred", "deleted_at", "created_at", "updated_at"}
+
+
+def _insert_note(db, entry_id=None, text_="Ý tưởng", label=None):
+    cols, vals = "voice_entry_id, text", ":e, :t"
+    if label is not None:
+        cols, vals = cols + ", label", vals + ", :l"
+    db.execute(text(f"INSERT INTO notes ({cols}) VALUES ({vals})"), {"e": entry_id, "t": text_, "l": label})
+
+
+def test_notes_table(engine):
+    assert {c["name"] for c in inspect(engine).get_columns("notes")} == NOTE_COLUMNS
+
+
+def test_note_defaults(db):
+    _insert_note(db)
+    row = db.execute(text("SELECT * FROM notes")).one()
+    assert row.id is not None and row.created_at is not None and row.updated_at is not None
+    assert (row.label, row.author, row.starred, row.deleted_at) == ("note", None, False, None)
+
+
+@pytest.mark.parametrize("bad", [{"text_": ""}, {"label": "task"}])
+def test_note_constraints(db, bad):
+    with pytest.raises(IntegrityError):
+        with db.begin_nested():
+            _insert_note(db, **bad)
+
+
+def test_deleting_entry_cascades_to_notes(db):
+    entry_id = _insert_entry(db)
+    _insert_note(db, entry_id)
+    db.execute(text("DELETE FROM voice_entries WHERE id = :id"), {"id": entry_id})
+    assert db.execute(text("SELECT count(*) FROM notes")).scalar() == 0

@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app import timeutil
 from app.db import get_db
-from app.models import Task, VoiceEntry
+from app.models import Note, Task, VoiceEntry
 from app.schemas import TaskCreate, TaskOut, TaskPatch
 from app.services.normalize import fill_due_date
 
@@ -125,10 +125,11 @@ def restore_task(task_id: uuid.UUID, db: Session = Depends(get_db)):
 def undo_voice_entry(entry_id: uuid.UUID, db: Session = Depends(get_db)):
     if db.get(VoiceEntry, entry_id) is None:
         raise HTTPException(404, "Không tìm thấy lần ghi âm")
-    db.execute(
-        update(Task)
-        .where(Task.voice_entry_id == entry_id, Task.deleted_at.is_(None))
-        .values(deleted_at=func.now())
-    )
+    for model in (Task, Note):
+        db.execute(
+            update(model)
+            .where(model.voice_entry_id == entry_id, model.deleted_at.is_(None))
+            .values(deleted_at=func.now())
+        )
     db.commit()
     return Response(status_code=204)

@@ -49,6 +49,7 @@ def test_real_audio(real_client, name, expected):
     resp = send(real_client, path)
     assert resp.status_code == 200, resp.text
     tasks = resp.json()["tasks"]
+    assert resp.json()["notes"] == [], resp.json()
     assert len(tasks) == len(expected), tasks
     for keyword, due, starred in expected:
         [task] = [t for t in tasks if keyword in t["title"].lower()] or [None]
@@ -58,10 +59,23 @@ def test_real_audio(real_client, name, expected):
             assert task["starred"] is starred, task
 
 
-def test_real_audio_without_task(real_client):
-    path = SAMPLES / "troi-dep.m4a"
+# file -> (keyword in note text, label); speech that is not a task becomes a note
+EXPECTED_NOTES = {
+    "troi-dep.m4a": ("trời đẹp", "note"),
+    "y-tuong.m4a": ("uống nước", "idea"),
+    "cau-hay.m4a": ("stay hungry", "quote"),
+}
+
+
+@pytest.mark.parametrize("name,expected", EXPECTED_NOTES.items())
+def test_real_audio_note(real_client, name, expected):
+    path = SAMPLES / name
     if not path.exists():
-        pytest.skip("missing sample troi-dep.m4a")
+        pytest.skip(f"missing sample {name}")
     resp = send(real_client, path)
-    assert resp.status_code == 422
-    assert resp.json()["raw_text"]
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["tasks"] == [], body
+    [note] = body["notes"]
+    keyword, label = expected
+    assert keyword in note["text"].lower() and note["label"] == label, note

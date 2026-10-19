@@ -8,12 +8,15 @@ App việc cần làm kiểu Microsoft To Do, thêm việc nhanh nhất bằng g
 
 Ví dụ câu nói: *"mai 9 giờ sáng gọi cho anh Tuấn, mua sữa cho con, quan trọng"* → 2 việc: "Gọi cho anh Tuấn" (hạn mai, nhắc 09:00 mai) và "Mua sữa cho con" (gắn sao). Tiếng Anh: *"remind me to call the bank tomorrow at 3pm"*.
 
+Ngoài việc cần làm, anh còn ghi lại **ý tưởng bất chợt** và **câu nói hay**. Phần nào trong lời nói không phải việc cần làm thì lưu thành **ghi chú** (nguyên văn, có nhãn Ý tưởng / Câu hay / Ghi chú), không bao giờ bỏ đi. Ví dụ: *"ý tưởng: làm app nhắc con uống nước"* → 1 ghi chú nhãn Ý tưởng; *"câu hay của Steve Jobs: stay hungry, stay foolish"* → 1 ghi chú nhãn Câu hay, tác giả Steve Jobs. (Loi chốt 2026-10-19.)
+
 **Phải có (MVP)**
 
 - Mở như app bình thường: icon launcher mở danh sách việc; nút micro nổi trong danh sách để ghi âm.
 - Ghi âm, tự dừng khi im lặng khoảng 1,5 giây.
-- OpenAI chuyển giọng nói thành chữ, sau đó parse thành 1 hoặc nhiều việc (tiêu đề, ngày hạn, giờ nhắc, gắn sao).
-- Thêm và sửa việc bằng cách gõ.
+- OpenAI chuyển giọng nói thành chữ, sau đó parse thành 1 hoặc nhiều việc (tiêu đề, ngày hạn, giờ nhắc, gắn sao) và ghi chú (nguyên văn, nhãn, tác giả của câu hay). Một lần nói có thể ra cả việc lẫn ghi chú.
+- Màn hình **Ghi chú**: danh sách ý tưởng, câu hay, ghi chú; lọc theo nhãn; gắn sao, sửa, xóa (có hoàn tác). Nói khi đang ở màn Ghi chú → mọi thứ thành ghi chú.
+- Thêm và sửa việc, ghi chú bằng cách gõ.
 - Lưu vào Postgres trên server; hàng đợi offline cho ghi âm khi mất sóng.
 - Kết quả ghi âm hiện ngay trong danh sách; snackbar hiện câu đã nghe kèm nút **Hoàn tác**.
 - Bốn màn hình: **Ngày của tôi**, **Quan trọng**, **Đã lên kế hoạch**, **Tác vụ** (tất cả).
@@ -59,13 +62,13 @@ Một lần nói đi từ điện thoại lên server, qua OpenAI 2 lần, lưu 
 1. Nhấn micro → ghi âm → tự dừng.
 2. App lưu file, tạo `PendingUpload` (`entry_id` = UUID, `recorded_at`), hiện dòng "⏳ Đang xử lý…" trên đầu danh sách.
 3. `UploadWorker` gửi `POST /voice`. Server transcribe → parse (lấy `recorded_at` làm "bây giờ" để hiểu "mai", "thứ 6") → lưu → trả danh sách việc.
-4. App chèn các việc mới vào danh sách, hiện snackbar "Đã thêm 2 việc" kèm câu đã nghe và **Hoàn tác**, đặt báo thức cho việc có `remind_at`.
+4. App chèn các việc và ghi chú mới vào danh sách, hiện snackbar "Đã thêm 2 việc" (hoặc "Đã thêm 1 việc, 1 ghi chú") kèm câu đã nghe và **Hoàn tác**, đặt báo thức cho việc có `remind_at`.
 
 Mất mạng thì file nằm trong hàng đợi Room và tự gửi khi có mạng; `entry_id` giúp server không tạo bản ghi trùng. Nếu app đang đóng khi kết quả về thì hiện notification kết quả (giống expense-voice).
 
 ## Schema DB
 
-Hai bảng: `voice_entries` lưu mỗi lần nói (giữ nguyên từ expense-voice), `tasks` lưu từng việc.
+Ba bảng: `voice_entries` lưu mỗi lần nói (giữ nguyên từ expense-voice), `tasks` lưu từng việc, `notes` lưu từng ghi chú.
 
 ```sql
 CREATE TABLE voice_entries (
@@ -96,6 +99,19 @@ CREATE TABLE tasks (
 );
 
 CREATE INDEX ON tasks (due_date) WHERE deleted_at IS NULL;
+
+CREATE TABLE notes (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  voice_entry_id  UUID REFERENCES voice_entries(id) ON DELETE CASCADE,  -- NULL nếu gõ tay
+  text            TEXT NOT NULL CHECK (text <> ''),              -- nguyên văn lời nói
+  label           TEXT NOT NULL DEFAULT 'note'
+                  CHECK (label IN ('idea', 'quote', 'note')),    -- Ý tưởng | Câu hay | Ghi chú
+  author          TEXT,                                          -- tác giả câu hay, NULL = không nói
+  starred         BOOLEAN NOT NULL DEFAULT FALSE,
+  deleted_at      TIMESTAMPTZ,
+  created_at      TIMESTAMPTZ DEFAULT now(),
+  updated_at      TIMESTAMPTZ DEFAULT now()
+);
 ```
 
 - Có `remind_at` mà không có `due_date` → server đặt `due_date` = ngày (giờ VN) của `remind_at`.
@@ -113,36 +129,44 @@ CREATE INDEX ON tasks (due_date) WHERE deleted_at IS NULL;
 
 Việc đã xong của mỗi màn hình nằm trong nhóm "Đã hoàn thành" thu gọn ở cuối (Ngày của tôi: chỉ việc xong hôm nay; Tác vụ: tất cả).
 
+Ghi chú không hiện trong 4 màn hình việc. Màn **Ghi chú**: mọi ghi chú chưa xóa, mới nhất trước, lọc theo nhãn (Tất cả / Ý tưởng / Câu hay / Ghi chú). Ghi chú không có ngày hạn, giờ nhắc hay hoàn thành.
+
 ## API backend
 
 Mọi endpoint đều yêu cầu header `Authorization: Bearer <DEVICE_TOKEN>`. Prefix `/api/v1`.
 
 | Method | Endpoint | Việc làm | Trả về |
 | --- | --- | --- | --- |
-| POST | `/voice` | Nhận audio (multipart: `file`, `entry_id`, `recorded_at`, `my_day?`), transcribe, parse, lưu | `entry_id`, `raw_text`, danh sách việc đã tạo |
+| POST | `/voice` | Nhận audio (multipart: `file`, `entry_id`, `recorded_at`, `my_day?`, `as_note?`), transcribe, parse, lưu | `entry_id`, `raw_text`, danh sách việc và ghi chú đã tạo |
 | GET | `/tasks?view=my_day\|important\|planned\|all` | Danh sách việc theo màn hình, kèm việc đã xong | mảng việc |
 | POST | `/tasks` | Thêm việc gõ tay (`id` do app sinh, idempotent) | việc |
 | PATCH | `/tasks/{id}` | Sửa `title`, `note`, `starred`, `due_date`, `remind_at`, `my_day` (bool), `completed` (bool) | việc sau khi sửa |
 | DELETE | `/tasks/{id}` | Xóa mềm | 204 |
 | POST | `/tasks/{id}/restore` | Hoàn tác xóa | việc |
-| POST | `/voice/{entry_id}/undo` | Hoàn tác cả lần nói (xóa mềm mọi việc của nó) | 204 |
+| GET | `/notes?label=idea\|quote\|note` | Ghi chú chưa xóa, mới nhất trước (`label` bỏ trống = tất cả) | mảng ghi chú |
+| POST | `/notes` | Thêm ghi chú gõ tay (`id` do app sinh, idempotent; `label` mặc định `note`) | ghi chú |
+| PATCH | `/notes/{id}` | Sửa `text`, `label`, `author`, `starred` | ghi chú sau khi sửa |
+| DELETE | `/notes/{id}` | Xóa mềm | 204 |
+| POST | `/notes/{id}/restore` | Hoàn tác xóa | ghi chú |
+| POST | `/voice/{entry_id}/undo` | Hoàn tác cả lần nói (xóa mềm mọi việc và ghi chú của nó) | 204 |
 | GET | `/health` | Kiểm tra sống (không cần token) | `ok` |
 
 **Quy tắc xử lý** (giữ nguyên từ expense-voice)
 
 - `POST /voice` **idempotent** theo `entry_id`; entry đang xử lý → 409; kẹt quá 2 phút thì cho xử lý lại; `failed` thì xử lý lại từ đầu.
 - Xử lý đồng bộ trong request (mục tiêu dưới 3 giây). Timeout OpenAI 20 giây; lỗi → `status=failed`, trả 502 để app thử lại.
-- Parse ra 0 việc → 422 kèm `raw_text`, app hiện "Không hiểu, nói lại nhé".
+- `as_note=true` (nói khi đang ở màn Ghi chú) → mọi nội dung thành ghi chú, không tạo việc.
+- Parse ra 0 việc và 0 ghi chú (chỉ có tiếng ồn, "ừm…") → 422 kèm `raw_text`, app hiện "Không hiểu, nói lại nhé".
 - `recorded_at` thiếu múi giờ → 422.
 
 ## Pipeline AI
 
-Hai lần gọi OpenAI: transcribe audio thành chữ, rồi parse chữ thành JSON bằng Structured Outputs. Không nói giờ nhắc thì để `null`, **không đoán**.
+Hai lần gọi OpenAI: transcribe audio thành chữ, rồi parse chữ thành JSON (việc + ghi chú) bằng Structured Outputs. Không nói giờ nhắc thì để `null`, **không đoán**. Không bỏ nội dung nào: phần không phải việc thành ghi chú.
 
 **Bước 1: Transcribe**
 
 - Model: biến `OPENAI_STT_MODEL`. Không cố định `language` (biến `OPENAI_STT_LANGUAGE`, rỗng = tự nhận, `vi` = chỉ tiếng Việt), giống expense-voice.
-- `prompt` gợi ý từ vựng: `"nhắc, hạn, mai, ngày kia, thứ hai, chủ nhật, tuần sau, giờ, rưỡi, kém, sáng, trưa, chiều, tối, quan trọng, gấp, remind me, tomorrow, next week, Monday, a.m., p.m., important, urgent"`.
+- `prompt` gợi ý từ vựng: `"nhắc, hạn, mai, ngày kia, thứ hai, chủ nhật, tuần sau, giờ, rưỡi, kém, sáng, trưa, chiều, tối, quan trọng, gấp, ý tưởng, ghi chú, câu hay, remind me, tomorrow, next week, Monday, a.m., p.m., important, urgent, idea, quote"`.
 
 **Bước 2: Parse**
 
@@ -152,18 +176,29 @@ Hai lần gọi OpenAI: transcribe audio thành chữ, rồi parse chữ thành 
 System prompt:
 
 ```text
-Bạn tách câu nói tiếng Việt hoặc tiếng Anh thành danh sách việc cần làm.
+Bạn tách câu nói tiếng Việt hoặc tiếng Anh thành việc cần làm (tasks) và ghi chú (notes).
 Bây giờ là {now} (giờ Việt Nam).
-Quy tắc:
+Quy tắc cho việc (tasks):
 - Mỗi việc riêng là 1 mục. Một câu có thể có nhiều việc. Bản chép giọng nói có thể thiếu dấu phẩy: "gọi cho anh Tuấn mua sữa cho con" là 2 việc. Các hành động phục vụ cùng một việc là 1 mục: "đi siêu thị mua sữa và trứng" = 1 việc.
-- source: chép nguyên văn phần câu nói thuộc về việc này (gồm cả từ chỉ ngày, giờ, nhắc, quan trọng của riêng việc đó). Chỉ lấy due_date, remind_at, starred từ source của chính việc đó.
+- source: chép nguyên văn phần câu nói thuộc về việc này (gồm cả từ chỉ ngày, giờ, nhắc, quan trọng của riêng việc đó). Source của các việc không trùng nhau: "thứ 6 3 giờ chiều họp với khách mua quà cho vợ, quan trọng" -> source "thứ 6 3 giờ chiều họp với khách" và "mua quà cho vợ, quan trọng". Chỉ lấy due_date, remind_at, starred từ source của chính việc đó.
 - title: ngắn gọn, viết hoa chữ đầu, giữ nguyên ngôn ngữ người nói, bỏ các từ chỉ thời gian, nhắc nhở và mức độ quan trọng ("nhắc tôi", "mai", "lúc 9 giờ", "quan trọng", "remind me", "tomorrow", "at 3pm").
 - due_date (YYYY-MM-DD): "hôm nay", "mai"/"ngày mai", "ngày kia"/"mốt", "thứ 2".."thứ 7", "chủ nhật" (lần gần nhất sau hôm nay), "tuần sau" (thứ Hai tuần sau), "cuối tuần" (thứ Bảy tới), "20/10", "ngày 25". Tiếng Anh: "today", "tomorrow", "Friday"/"on Friday" (lần gần nhất sau hôm nay), "next week" (thứ Hai tuần sau), "this weekend" (thứ Bảy tới), "Oct 25"/"the 25th". Không nói -> null.
 - remind_at (YYYY-MM-DDTHH:MM, giờ Việt Nam): chỉ khi có giờ cụ thể hoặc có chữ "nhắc". "9 giờ sáng" = 09:00, "3 giờ chiều" = 15:00, "8 giờ tối" = 20:00, "9 rưỡi" = 09:30, "10 giờ kém 15" = 09:45; "3pm" = 15:00, "9:30 am" = 09:30, "noon" = 12:00. Có "nhắc"/"remind" mà chỉ nói buổi: sáng/morning = 08:00, trưa = 12:00, chiều/afternoon = 15:00, tối/evening/tonight = 20:00. Có giờ mà không có ngày: so với giờ bây giờ, giờ đó chưa tới -> hôm nay, đã qua -> ngày mai (ví dụ bây giờ 14:30: "4 giờ chiều" -> hôm nay 16:00, "10 giờ sáng" -> ngày mai 10:00). Không nói -> null.
 - Có remind_at mà không có due_date -> due_date = ngày của remind_at.
-- starred: true nếu nói "quan trọng", "gấp", "ưu tiên", "đánh dấu sao", "important", "urgent", "star it" cho việc đó; ngược lại false.
-- Chỉ tạo việc khi người nói muốn làm hoặc được nhắc làm một việc. Câu kể, nhận xét, thời tiết ("hôm nay trời đẹp quá", "the weather is nice today") không phải việc. Không có việc nào -> trả tasks rỗng.
+- starred: true nếu nói "quan trọng", "gấp", "ưu tiên", "đánh dấu sao", "important", "urgent", "star it" cho việc đó; ngược lại false. Từ chỉ mức độ quan trọng ở cuối câu chỉ thuộc về việc nói ngay trước nó, không áp cho các việc trước đó.
+- Chỉ tạo việc khi người nói muốn làm hoặc được nhắc làm một việc cụ thể. Câu kể, nhận xét, thời tiết ("hôm nay trời đẹp quá", "the weather is nice today"), ý tưởng, câu nói hay không phải việc: đó là ghi chú.
+Quy tắc cho ghi chú (notes):
+- Mọi phần của câu nói không phải việc là ghi chú. Không bỏ nội dung nào. Một câu có thể có cả việc lẫn ghi chú.
+- Mở đầu bằng "ý tưởng", "ghi chú", "ghi lại", "câu hay", "idea", "note", "quote" -> phần theo sau là ghi chú, kể cả khi nghe giống việc cần làm ("ý tưởng: làm app nhắc con uống nước" là ghi chú, không phải việc).
+- source: chép nguyên văn phần câu nói thuộc về ghi chú này.
+- text: nguyên văn lời nói, chỉ thêm dấu câu và viết hoa chữ đầu. Bỏ từ mở đầu ("ý tưởng là", "câu hay của Steve Jobs", "ghi chú", "idea:", "quote:"). Không tóm tắt, không dịch, không viết lại.
+- label: "quote" cho câu nói hay, trích dẫn, tục ngữ; "idea" cho ý tưởng, dự định chợt nghĩ ra ("hay là…", "mình nên thử…", "what if…"); còn lại "note".
+- author: người nói câu trích dẫn nếu được nêu ("câu của Steve Jobs", "as Steve Jobs said"), ngược lại null.
+- Tiếng ngập ngừng, tiếng ồn, không có nội dung ("ừm", "à", "alo alo") -> không tạo gì.
+- Không có việc nào -> tasks rỗng. Không có ghi chú nào -> notes rỗng.
 ```
+
+Khi `as_note=true`, thêm dòng cuối vào prompt: `Người nói đang ở màn hình Ghi chú: mọi nội dung là ghi chú, tasks luôn rỗng.` Server vẫn chuyển việc nào model lỡ trả về thành ghi chú (lấy `source` làm `text`, nhãn `note`).
 
 JSON Schema (strict):
 
@@ -171,7 +206,7 @@ JSON Schema (strict):
 {
   "type": "object",
   "additionalProperties": false,
-  "required": ["tasks"],
+  "required": ["tasks", "notes"],
   "properties": {
     "tasks": {
       "type": "array",
@@ -187,14 +222,28 @@ JSON Schema (strict):
           "starred":   {"type": "boolean"}
         }
       }
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source", "text", "label", "author"],
+        "properties": {
+          "source": {"type": "string"},
+          "text":   {"type": "string"},
+          "label":  {"type": "string", "enum": ["idea", "quote", "note"]},
+          "author": {"type": ["string", "null"]}
+        }
+      }
     }
   }
 }
 ```
 
-`source` chỉ giúp model gắn ngày/giờ/sao đúng việc (không lưu). Server kiểm tra lại định dạng ngày giờ sau khi parse; sai định dạng thì bỏ trường đó (để `null`), không bỏ cả việc. Giờ nhắc rơi vào trước lúc nói trong cùng ngày → server dời sang ngày mai (LLM hay sai luật "giờ đã qua"); bảng test dưới đây kiểm kết quả sau bước này.
+`source` chỉ giúp model gắn ngày/giờ/sao đúng việc và tách đúng ghi chú (không lưu). Server kiểm tra lại định dạng ngày giờ sau khi parse; sai định dạng thì bỏ trường đó (để `null`), không bỏ cả việc. Giờ nhắc rơi vào trước lúc nói trong cùng ngày → server dời sang ngày mai (LLM hay sai luật "giờ đã qua"); bảng test dưới đây kiểm kết quả sau bước này.
 
-**Bộ test bắt buộc** (pytest, gọi API thật, `now` cố định = Thứ Hai 19/10/2026 14:30):
+**Bộ test bắt buộc** (pytest, gọi API thật, `now` cố định = Thứ Hai 19/10/2026 14:30). Dòng không nhắc tới ghi chú thì mong đợi 0 ghi chú:
 
 | Câu nói | Kết quả mong đợi |
 | --- | --- |
@@ -211,10 +260,17 @@ JSON Schema (strict):
 | ngày kia đóng tiền điện | Đóng tiền điện · 2026-10-21 · null |
 | chủ nhật đi siêu thị 9 rưỡi sáng | Đi siêu thị · 2026-10-25 · 2026-10-25T09:30 |
 | hạn 25/10 nộp thuế, gấp | Nộp thuế · 2026-10-25 · null · true |
-| hôm nay trời đẹp quá | 0 việc → 422 |
+| hôm nay trời đẹp quá | 0 việc; 1 ghi chú · note · "Hôm nay trời đẹp quá" |
 | remind me to call the bank tomorrow at 3pm | Call the bank · 2026-10-20 · 2026-10-20T15:00 · false |
 | buy milk and pay rent on Friday, it's urgent | 2 việc: Buy milk (không sao; ngày không kiểm vì "on Friday" có thể cho cả 2 việc); Pay rent · 2026-10-23 · null · true |
-| the weather is nice today | 0 việc → 422 |
+| the weather is nice today | 0 việc; 1 ghi chú · note |
+| ý tưởng: làm app nhắc con uống nước | 0 việc; 1 ghi chú · idea · có "uống nước", không có "ý tưởng" |
+| câu hay của Steve Jobs: stay hungry, stay foolish | 0 việc; 1 ghi chú · quote · "Stay hungry, stay foolish" · tác giả Steve Jobs |
+| có công mài sắt có ngày nên kim | 0 việc; 1 ghi chú · quote · tác giả null |
+| idea: a podcast about sharks for kids | 0 việc; 1 ghi chú · idea · có "podcast" |
+| mai 9 giờ sáng gọi anh Tuấn, à ý tưởng là thêm chế độ tối cho app | 1 việc: Gọi anh Tuấn · 2026-10-20 · 2026-10-20T09:00; 1 ghi chú · idea · có "chế độ tối" |
+| gọi cho anh Tuấn hỏi về hợp đồng (`as_note=true`) | 0 việc; 1 ghi chú · có "hợp đồng" |
+| ừm… à… | 0 việc, 0 ghi chú → 422 |
 
 ## Android app
 
@@ -229,17 +285,19 @@ JSON Schema (strict):
 ```text
 app/src/main/java/com/sitpro/notevoice/
   audio/     Recorder, SilenceDetector (copy từ expense-voice)
-  data/      Room: PendingUpload, CachedTask; TaskRepository; SettingsStore
+  data/      Room: PendingUpload, CachedTask, CachedNote; TaskRepository, NoteRepository; SettingsStore
   sync/      UploadWorker, UploadProcessor
   api/       Retrofit ApiService, AuthInterceptor, Dto
   reminder/  ReminderScheduler, ReminderReceiver, BootReceiver
   notify/    ResultNotifier (kết quả khi app đóng + kênh nhắc việc)
-  ui/        TaskListScreen (dùng chung 4 màn), TaskEditSheet, SettingsScreen, Texts, AppLanguage
+  ui/        TaskListScreen (dùng chung 4 màn), TaskEditSheet, NoteListScreen, NoteEditSheet, SettingsScreen, Texts, AppLanguage
 ```
 
 **Màn hình chính**
 
-- **Side menu** (ngăn kéo, mở bằng ☰; không dùng bottom bar) với 4 mục: Ngày của tôi (mặc định), Quan trọng, Đã lên kế hoạch, Tác vụ; mỗi mục có số việc chưa xong. Fold 8 mở ra thì hiện thanh bên cố định.
+- **Side menu** (ngăn kéo, mở bằng ☰; không dùng bottom bar) với 4 mục: Ngày của tôi (mặc định), Quan trọng, Đã lên kế hoạch, Tác vụ; mỗi mục có số việc chưa xong. Dưới vạch ngăn là mục **Ghi chú** (số ghi chú). Fold 8 mở ra thì hiện thanh bên cố định.
+- **Màn Ghi chú:** chip lọc Tất cả / Ý tưởng / Câu hay / Ghi chú; mỗi thẻ: nhãn (Ý tưởng cam 💡, Câu hay xanh ❝, Ghi chú xám) · nguyên văn (tối đa 6 dòng) · "— tác giả" nếu có · giờ tạo · ngôi sao. Ô dưới cùng "Thêm ghi chú"; micro ở màn này gửi `as_note=true`.
+- **Sửa ghi chú** (bottom sheet): nội dung nhiều dòng, chip nhãn, tác giả (khi nhãn Câu hay), sao, xóa → snackbar Hoàn tác.
 - Mỗi dòng: ô tròn hoàn thành · tiêu đề · dòng phụ (ngày hạn, 🔔 giờ nhắc; quá hạn tô đỏ) · ngôi sao.
 - Ô "Thêm việc" ở dưới cùng để gõ; nút micro nổi cạnh đó để ghi âm.
 - Đang ghi âm: thanh ghi âm có sóng âm, nút Dừng / Hủy. 8 giây đầu không có tiếng → hủy, báo "Không nghe thấy gì".
@@ -263,8 +321,8 @@ Hai container trong 1 file Docker Compose, đứng sau nginx sẵn có trên EC2
 
 **Thông tin triển khai**
 
-- Domain: `notecamap.s-itpro.com` → A record `54.251.52.235` (cần tạo)
-- Repo: github.com/Sharko2025/note-voice (cần tạo)
+- Domain: `notecamap.s-itpro.com` → A record `54.251.52.235`
+- Repo: github.com/Sharko2025/note-voice (public)
 - API bind `127.0.0.1:8001` (8000 là của expense-voice); Postgres riêng, `POSTGRES_DB=notevoice`.
 
 **.env**
@@ -301,15 +359,18 @@ Làm backend trước và test bằng `curl` với audio thu sẵn, sau đó m�
 - [x] Bộ test parse ở mục Pipeline AI đều qua
 - [x] Các endpoint tasks (4 view), health
 - [x] Deploy lên EC2, nginx + SSL, `curl` từ ngoài gửi audio ra kết quả đúng
+- [ ] Ghi chú: bảng `notes`, `POST /voice` ra cả ghi chú (+ `as_note`), endpoint `/notes`, bộ test parse mới đều qua, deploy
 
 **Trước Phase 2: Mockup**
 
 - [x] Mockup logo, Loi chọn 1 phương án (C, 2026-10-19)
 - [x] Mockup toàn bộ màn hình (VI + EN, sáng + tối), Loi duyệt (2026-10-19)
+- [ ] Mockup v3 thêm màn Ghi chú, Loi duyệt
 
 **Phase 2: App Android cơ bản**
 
 - [ ] 4 màn hình danh sách, thêm/sửa/xóa/hoàn thành/gắn sao bằng tay
+- [ ] Màn Ghi chú: lọc nhãn, thêm/sửa/xóa/gắn sao bằng tay, ghi âm `as_note`
 - [ ] Ghi âm trong app + hàng đợi Room + `UploadWorker` + kết quả kèm Hoàn tác
 - [ ] Bật chế độ máy bay, nói 3 lần, tắt chế độ máy bay → cả 3 lên server, không trùng
 
@@ -342,6 +403,7 @@ Làm backend trước và test bằng `curl` với audio thu sẵn, sau đó m�
 | Điều hướng | Side menu, không bottom bar | Loi chốt 2026-10-19; giữ chỗ cho danh sách trên màn hình ngoài |
 | Kết quả ghi âm | Snackbar hiện câu đã nghe + Hoàn tác | Loi chốt 2026-10-19; thấy ngay khi STT nghe nhầm |
 | Báo lại (snooze) | Có trong MVP, cố định 10 phút | Loi chốt 2026-10-19 |
+| Ghi chú (ý tưởng, câu hay) | Có trong MVP. AI tự phân loại: phần không phải việc → ghi chú nguyên văn, không bỏ gì. 1 mục Ghi chú chung, nhãn Ý tưởng / Câu hay / Ghi chú | Loi chốt 2026-10-19 (phương án A); 1 mục chung theo đề xuất, Loi chưa nói khác |
 | Cách mở app | App bình thường, micro trong danh sách | Giống Microsoft To Do; không cần màn hình khóa/phím bên |
 | Nhắc việc | Báo thức trên máy, không push từ server | 1 thiết bị, không cần FCM |
 | Thời gian tương đối | Tính theo `recorded_at`, không theo lúc server nhận | Nói offline hôm qua "mai" vẫn ra đúng ngày |

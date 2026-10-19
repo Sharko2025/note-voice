@@ -2,7 +2,7 @@ from datetime import date, datetime, timezone
 
 import pytest
 
-from app.services.normalize import normalize
+from app.services.normalize import normalize, normalize_notes, tasks_as_notes
 from app.services.parser import build_system_prompt
 from app.timeutil import VN_TZ, format_now_for_prompt
 
@@ -123,7 +123,66 @@ def test_prompt_now_uses_vietnam_day_near_midnight():
     assert format_now_for_prompt(late) == "Chủ Nhật (Sunday), 18/10/2026 23:30"
 
 
+def test_system_prompt_as_note_line():
+    assert "màn hình Ghi chú" not in build_system_prompt(NOW)
+    assert build_system_prompt(NOW, as_note=True).endswith(
+        "\nNgười nói đang ở màn hình Ghi chú: mọi nội dung là ghi chú, tasks luôn rỗng."
+    )
+
+
 def test_system_prompt_contains_now():
     prompt = build_system_prompt(NOW)
     assert "Bây giờ là Thứ Hai (Monday), 19/10/2026 14:30 (giờ Việt Nam)." in prompt
     assert "{now}" not in prompt
+
+
+# ---------- notes ----------
+
+def note(text="ý tưởng hay", label="idea", author=None, source="ý tưởng hay"):
+    return {"source": source, "text": text, "label": label, "author": author}
+
+
+def test_note_text_cleaned_but_not_rewritten():
+    [n] = normalize_notes([note("  làm app   nhắc con\nuống nước. ")])
+    assert (n.text, n.label, n.author, n.starred) == ("Làm app nhắc con uống nước.", "idea", None, False)
+
+
+def test_note_long_text_kept_whole():
+    long = "câu " * 300
+    [n] = normalize_notes([note(long)])
+    assert n.text == long.strip().capitalize()
+
+
+@pytest.mark.parametrize("text", ["", "  ", None, 7])
+def test_empty_note_dropped(text):
+    assert normalize_notes([note(text), note("Hai")])[0].text == "Hai"
+    assert normalize_notes([note(text)]) == []
+
+
+@pytest.mark.parametrize("label", ["task", None, "IDEA", 3])
+def test_unknown_label_becomes_note(label):
+    assert normalize_notes([note(label=label)])[0].label == "note"
+
+
+@pytest.mark.parametrize("author,expected", [(" Steve Jobs ", "Steve Jobs"), ("", None), ("  ", None), (None, None), (5, None)])
+def test_note_author(author, expected):
+    assert normalize_notes([note(label="quote", author=author)])[0].author == expected
+
+
+def test_non_dict_notes_skipped():
+    assert [n.text for n in normalize_notes(["x", None, note("Một")])] == ["Một"]
+
+
+def test_tasks_as_notes_use_spoken_source():
+    items = [
+        {"source": "gọi cho anh Tuấn hỏi về hợp đồng", "title": "Gọi cho anh Tuấn", "due_date": None,
+         "remind_at": None, "starred": True},
+        {"source": "", "title": "mua sữa", "due_date": None, "remind_at": None, "starred": False},
+        "junk",
+    ]
+    out = tasks_as_notes(items)
+    assert [(n["text"], n["label"], n["author"]) for n in out] == [
+        ("gọi cho anh Tuấn hỏi về hợp đồng", "note", None),
+        ("mua sữa", "note", None),  # no source: fall back to the title
+    ]
+    assert [n.starred for n in normalize_notes(out)] == [True, False]

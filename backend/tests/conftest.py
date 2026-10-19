@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from app.config import get_settings
 from app.db import get_db
 from app.main import create_app
-from app.models import Task, VoiceEntry
+from app.models import Note, Task, VoiceEntry
 
 TEST_DATABASE_URL = os.environ["TEST_DATABASE_URL"]
 
@@ -75,18 +75,19 @@ class FakeTranscriber:
 
 
 class FakeParser:
-    def __init__(self, tasks=None, error=None):
+    def __init__(self, tasks=None, notes=None, error=None):
         self.tasks = tasks if tasks is not None else [
             {"title": "Mua sữa cho con", "due_date": None, "remind_at": None, "starred": False}
         ]
+        self.notes = notes if notes is not None else []
         self.error = error
-        self.calls = []  # (text, now)
+        self.calls = []  # (text, now, as_note)
 
-    def parse(self, text, now):
-        self.calls.append((text, now))
+    def parse(self, text, now, as_note=False):
+        self.calls.append((text, now, as_note))
         if self.error:
             raise self.error
-        return self.tasks
+        return {"tasks": self.tasks, "notes": self.notes}
 
 
 @pytest.fixture
@@ -119,6 +120,22 @@ def make_task(db):
         db.add(task)
         db.flush()
         return task
+
+    return _make
+
+
+@pytest.fixture
+def make_note(db):
+    def _make(text="Làm app nhắc con uống nước", entry=None, deleted=False, **fields):
+        note = Note(
+            text=text,
+            voice_entry_id=entry.id if entry else None,
+            deleted_at=datetime.now(timezone.utc) if deleted else None,
+            **fields,
+        )
+        db.add(note)
+        db.flush()
+        return note
 
     return _make
 

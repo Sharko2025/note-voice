@@ -3,6 +3,7 @@ import re
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 
+from app.models import NOTE_LABELS
 from app.timeutil import VN_TZ, vn_date
 
 _DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
@@ -33,6 +34,46 @@ def normalize(items: list, recorded_at: datetime) -> list[TaskDraft]:
             remind_at = None  # never schedule an alarm in the past; the due date stays
         drafts.append(TaskDraft(title, due_date, remind_at, item.get("starred") is True))
     return drafts
+
+
+@dataclass
+class NoteDraft:
+    text: str
+    label: str
+    author: str | None
+    starred: bool = False
+
+
+def normalize_notes(items: list) -> list[NoteDraft]:
+    """Notes keep the spoken words; only whitespace and the first letter are touched."""
+    drafts = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        text = clean_title(item.get("text"))
+        if not text:
+            continue
+        label = item.get("label") if item.get("label") in NOTE_LABELS else "note"
+        drafts.append(NoteDraft(text, label, clean_author(item.get("author")), item.get("starred") is True))
+    return drafts
+
+
+def tasks_as_notes(items: list) -> list[dict]:
+    """as_note mode: a task the model returned anyway becomes a note of what was said (SPEC: Pipeline AI)."""
+    notes = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        source = item.get("source")
+        text = source if isinstance(source, str) and source.strip() else item.get("title")
+        notes.append({"text": text, "label": "note", "author": None, "starred": item.get("starred") is True})
+    return notes
+
+
+def clean_author(value) -> str | None:
+    if not isinstance(value, str):
+        return None
+    return " ".join(value.split()) or None
 
 
 def clean_title(value) -> str:
