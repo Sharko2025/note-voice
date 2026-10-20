@@ -17,6 +17,9 @@
     <string name="menu">Menu</string>
     <string name="back">Back</string>
     <string name="language_switch">Change language</string>
+    <string name="switch_tasks">Tasks</string>
+    <string name="switch_notes">Notes</string>
+    <string name="switch_tasks_notes">Switch between tasks and notes</string>
 
     <!-- Dates: weekdays Monday first -->
     <string-array name="weekday_short">

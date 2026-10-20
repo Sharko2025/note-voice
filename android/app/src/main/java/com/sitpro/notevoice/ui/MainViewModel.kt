@@ -36,6 +36,10 @@ enum class Screen(val view: TaskView?) {
     NOTES(null), SETTINGS(null),
 }
 
+/** "Việc · Ghi chú" pill: Notes from anywhere else, and from Notes back to the task list last opened. */
+fun quickSwitch(current: Screen, lastTaskScreen: Screen): Screen =
+    if (current == Screen.NOTES) lastTaskScreen else Screen.NOTES
+
 /** A snackbar to show; resolved in the UI so it follows the app language. */
 sealed interface UiMessage {
     data class Text(@StringRes val res: Int, val arg: Any? = null) : UiMessage
@@ -90,7 +94,12 @@ class MainViewModel(private val container: AppContainer) : ViewModel() {
         _messages.tryEmit(message)
     }
 
+    private var lastTaskScreen = Screen.MY_DAY
+
+    fun toggleNotes() = open(quickSwitch(screen.value, lastTaskScreen))
+
     fun open(target: Screen) {
+        if (target.view != null) lastTaskScreen = target
         selectedTaskId.value = null
         selectedNoteId.value = null
         screen.value = target

@@ -18,3 +18,5 @@
 - 2026-10-19 · Thử app trên máy ảo · Bản **debug** có thêm (thư mục `app/src/debug/`, không có trong release): cho phép HTTP thường tới `127.0.0.1`/`10.0.2.2` (server local) và `DebugVoiceReceiver` để đưa file ghi âm mẫu vào hàng đợi (máy ảo không có micro). Fold 8 vẫn dùng HTTPS production.
 - 2026-10-19 · Nhiều kết quả ghi âm về cùng lúc (vd. sau chế độ máy bay) · Mỗi lần nói 1 snackbar, hiện lần lượt (~10 s mỗi cái), chỉ lần cuối được tô cam. Đủ dùng cho MVP; nếu phiền thì gộp thành 1 snackbar "Đã thêm N việc".
 - 2026-10-19 · Chi tiết việc khi mở máy (cột phải) không có nút đóng · Giống mockup "Unfolded": chạm việc khác để đổi; đóng bằng cách chuyển màn. Thêm nút × nếu Loi thấy cần.
+- 2026-10-20 · Fold 8: lần mở đầu tiên app hiện tiếng Anh (máy đặt tiếng Anh) dù đã đặt mặc định tiếng Việt — Samsung không đẩy ngôn ngữ mới vào process đang chạy. Sửa: `MainActivity.attachBaseContext` tự áp ngôn ngữ của app. Đã thử lại như mới cài: tiếng Việt; nút VI · EN vẫn đổi được hai chiều.
+- 2026-10-20 · Fold 8: Samsung Pass hỏi lưu mã thiết bị như mật khẩu → đã chọn "Never for this app" để token chỉ nằm trong bộ nhớ mã hoá của app.

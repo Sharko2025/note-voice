@@ -7,6 +7,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -33,6 +34,17 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarVisuals
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.layout.isImeVisible
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.ui.zIndex
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -115,7 +127,12 @@ fun LogoBadge(size: Int = 38) {
     }
 }
 
-/** Bottom bar of every list: type to add, or tap the orange mic. While typing the mic becomes a check. */
+/**
+ * Bottom bar of every list: type to add, or tap the big orange mic floating at the bottom centre, where one
+ * thumb reaches it (Loi, 2026-10-20, replaces the mockup's mic at the right). While the field has focus the
+ * mic steps aside and a small check saves the typed text.
+ */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AddBar(
     text: String,
@@ -126,22 +143,33 @@ fun AddBar(
     modifier: Modifier = Modifier,
 ) {
     val c = colors
-    val typing = text.isNotBlank()
-    Row(modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+    var focused by remember { mutableStateOf(false) }
+    // Keyboard closed (Back or swipe) while the field keeps focus: drop the focus so the mic comes back.
+    val imeVisible = WindowInsets.isImeVisible
+    val focusManager = LocalFocusManager.current
+    LaunchedEffect(imeVisible) { if (!imeVisible) focusManager.clearFocus() }
+    val showMic = !focused && text.isEmpty()
+    BoxWithConstraints(modifier.fillMaxWidth(), contentAlignment = Alignment.BottomCenter) {
+        // Placeholder room left of the halo: half the width minus the halo half and the bar's leading icon.
+        val placeholderWidth = (maxWidth / 2 - (MIC_HALO / 2 + 62).dp).coerceAtLeast(60.dp)
         Row(
             Modifier
-                .weight(1f)
+                .fillMaxWidth()
+                .padding(start = 10.dp, end = 10.dp, bottom = 8.dp, top = if (showMic) MIC_RISE.dp else 8.dp)
                 .height(50.dp)
                 .clip(RoundedCornerShape(14.dp))
                 .background(c.surface)
                 .border(1.dp, c.line, RoundedCornerShape(14.dp))
-                .padding(horizontal = 12.dp),
+                .padding(start = 12.dp, end = 5.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(Icons.Filled.Add, null, tint = c.primary)
             Spacer(Modifier.width(8.dp))
             Box(Modifier.weight(1f)) {
-                if (text.isEmpty()) Text(placeholder, color = c.muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                // While the mic sits in the middle, keep the placeholder left of it so it is not hidden.
+                if (text.isEmpty()) {
+                    Text(placeholder, color = c.muted, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = if (showMic) Modifier.width(placeholderWidth) else Modifier)
+                }
                 BasicTextField(
                     value = text,
                     onValueChange = onText,
@@ -150,29 +178,39 @@ fun AddBar(
                     cursorBrush = SolidColor(c.primary),
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(onDone = { onSubmit() }),
-                    modifier = Modifier.fillMaxWidth().semantics { contentDescription = placeholder },
+                    modifier = Modifier.fillMaxWidth().onFocusChanged { focused = it.isFocused }.semantics { contentDescription = placeholder },
                 )
             }
+            if (text.isNotBlank()) {
+                Box(
+                    Modifier.size(40.dp).clip(RoundedCornerShape(11.dp)).background(c.fin).clickable(onClickLabel = stringResource(R.string.save)) { onSubmit() },
+                    contentAlignment = Alignment.Center,
+                ) { Icon(Icons.Filled.Check, stringResource(R.string.save), tint = c.onFin) }
+            }
         }
-        Spacer(Modifier.width(10.dp))
-        Box(
-            Modifier
-                .size(56.dp)
-                .shadow(4.dp, RoundedCornerShape(18.dp))
-                .clip(RoundedCornerShape(18.dp))
-                .background(c.fin)
-                .clickable(onClickLabel = stringResource(R.string.record)) { if (typing) onSubmit() else onMic() },
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                if (typing) Icons.Filled.Check else Icons.Filled.Mic,
-                contentDescription = stringResource(if (typing) R.string.save else R.string.record),
-                tint = c.onFin,
-                modifier = Modifier.size(28.dp),
-            )
+        if (showMic) {
+            // Soft halo + raised circle, drawn over the bar and rising above it.
+            Box(Modifier.padding(bottom = 4.dp).size(MIC_HALO.dp).zIndex(1f).clip(CircleShape).background(c.fin.copy(alpha = 0.22f)), contentAlignment = Alignment.Center) {
+                Box(
+                    Modifier
+                        .size(MIC_SIZE.dp)
+                        .shadow(10.dp, CircleShape)
+                        .clip(CircleShape)
+                        .background(c.fin)
+                        .clickable(onClickLabel = stringResource(R.string.record)) { onMic() },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(Icons.Filled.Mic, contentDescription = stringResource(R.string.record), tint = c.onFin, modifier = Modifier.size(38.dp))
+                }
+            }
         }
     }
 }
+
+private const val MIC_SIZE = 76
+private const val MIC_HALO = 92
+/** Room above the bar for the halo: halo + its 4 dp bottom gap, minus the bar's 50 dp and 8 dp gap. */
+private const val MIC_RISE = MIC_HALO + 4 - 58
 
 /** Snackbar with a bold first line and the heard text under it (mockup "Result with Undo"). */
 data class AppSnack(

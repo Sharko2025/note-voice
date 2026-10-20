@@ -13,6 +13,9 @@
     <string name="menu">Menu</string>
     <string name="back">Quay lại</string>
     <string name="language_switch">Đổi ngôn ngữ</string>
+    <string name="switch_tasks">Việc</string>
+    <string name="switch_notes">Ghi chú</string>
+    <string name="switch_tasks_notes">Chuyển giữa việc và ghi chú</string>
 
     <!-- Dates -->
     <string-array name="weekday_short">

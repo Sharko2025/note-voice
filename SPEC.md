@@ -408,6 +408,8 @@ Làm backend trước và test bằng `curl` với audio thu sẵn, sau đó m�
 | Lọc 4 màn hình | App tải 1 danh sách (`view=all`) rồi tự lọc theo bảng "Định nghĩa các màn hình" | Loi chốt 2026-10-19; có số đếm trong menu, xem được khi mất mạng |
 | Gõ việc ở Quan trọng / Đã lên kế hoạch | Tự gắn sao / đặt hạn hôm nay như Microsoft To Do (việc nói chỉ theo `my_day`) | Loi chốt 2026-10-19 |
 | Kết quả ghi âm | App đang mở → snackbar; app đã đóng → notification kèm Hoàn tác | Loi chốt 2026-10-19 |
+| Nút micro | Tròn to 76dp, cam, có vòng sáng, nằm giữa sát đáy, nổi đè lên thanh "Thêm việc"; ẩn khi đang gõ (✓ nhỏ trong ô gõ) | Loi chốt 2026-10-20 khi thử Fold 8: dùng 1 tay, khác mockup v3 (mic bên phải) |
+| Chuyển nhanh Việc ↔ Ghi chú | Nút viên thuốc "Việc · Ghi chú" cạnh VI · EN; từ Ghi chú quay về danh sách việc mở gần nhất | Loi chốt 2026-10-20 |
 | Nhắc việc | Báo thức trên máy, không push từ server | 1 thiết bị, không cần FCM |
 | Thời gian tương đối | Tính theo `recorded_at`, không theo lúc server nhận | Nói offline hôm qua "mai" vẫn ra đúng ngày |
 | Code | Tái dùng tối đa từ expense-voice (xem `docs/reuse-from-expense-voice.md`) | Đã chạy ổn trên Fold 8 |

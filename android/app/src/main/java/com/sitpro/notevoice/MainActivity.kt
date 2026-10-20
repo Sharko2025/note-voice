@@ -1,6 +1,9 @@
 package com.sitpro.notevoice
 
 import android.Manifest
+import android.app.LocaleManager
+import android.content.Context
+import android.content.res.Configuration
 import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -40,6 +43,20 @@ class MainActivity : ComponentActivity() {
     }
     private val firstRunPermissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {}
 
+    /**
+     * First launch: the Vietnamese default set in Application.onCreate does not reach a process that is already
+     * running on Samsung (seen on the Fold 8: the activity kept the phone's English), so apply it here too.
+     */
+    override fun attachBaseContext(base: Context) {
+        val appLocales = base.getSystemService(LocaleManager::class.java).applicationLocales
+        val current = base.resources.configuration.locales
+        if (appLocales.isEmpty || appLocales.get(0).language == current.get(0).language) {
+            super.attachBaseContext(base)
+        } else {
+            super.attachBaseContext(base.createConfigurationContext(Configuration(base.resources.configuration).apply { setLocales(appLocales) }))
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -61,7 +78,7 @@ class MainActivity : ComponentActivity() {
     override fun onStop() {
         super.onStop()
         container.results.foreground = false
-        if (!isChangingConfigurations) recording.onAppHidden()
+        if (!isChangingConfigurations && ::recording.isInitialized) recording.onAppHidden()
     }
 
     private fun onMic() {

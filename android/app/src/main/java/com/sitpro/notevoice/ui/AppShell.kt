@@ -248,7 +248,7 @@ private fun MainColumn(
         modifier = modifier,
         containerColor = colors.bg,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = { TopBar(screen, today, showMenu = !wide, onMenu = onMenu, onBack = { vm.open(Screen.MY_DAY) }, onSettings = { vm.open(Screen.SETTINGS) }) },
+        topBar = { TopBar(screen, today, showMenu = !wide, onMenu = onMenu, onBack = { vm.open(Screen.MY_DAY) }, onSettings = { vm.open(Screen.SETTINGS) }, onToggleNotes = vm::toggleNotes) },
         bottomBar = {
             if (screen != Screen.SETTINGS) {
                 AddBar(
@@ -290,7 +290,15 @@ private fun MainColumn(
 }
 
 @Composable
-private fun TopBar(screen: Screen, today: java.time.LocalDate, showMenu: Boolean, onMenu: () -> Unit, onBack: () -> Unit, onSettings: () -> Unit) {
+private fun TopBar(
+    screen: Screen,
+    today: java.time.LocalDate,
+    showMenu: Boolean,
+    onMenu: () -> Unit,
+    onBack: () -> Unit,
+    onSettings: () -> Unit,
+    onToggleNotes: () -> Unit,
+) {
     val c = colors
     val texts = rememberTexts()
     val context = LocalContext.current
@@ -303,6 +311,25 @@ private fun TopBar(screen: Screen, today: java.time.LocalDate, showMenu: Boolean
                 showMenu -> IconAction(Icons.Filled.Menu, stringResource(R.string.menu), onMenu)
             }
             Spacer(Modifier.weight(1f))
+            // Tasks / Notes quick switch (Loi, 2026-10-20), same pill style as VI / EN; the open side is highlighted.
+            val onNotes = screen == Screen.NOTES
+            val onTasks = screen.view != null
+            Text(
+                buildAnnotatedString {
+                    withStyle(androidx.compose.ui.text.SpanStyle(color = if (onTasks) c.primary else c.muted)) { append(stringResource(R.string.switch_tasks)) }
+                    append(" · ")
+                    withStyle(androidx.compose.ui.text.SpanStyle(color = if (onNotes) c.primary else c.muted)) { append(stringResource(R.string.switch_notes)) }
+                },
+                color = c.muted,
+                fontWeight = FontWeight.Bold,
+                fontSize = 12.sp,
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .border(1.5.dp, c.line, CircleShape)
+                    .clickable(onClickLabel = stringResource(R.string.switch_tasks_notes), onClick = onToggleNotes)
+                    .padding(horizontal = 10.dp, vertical = 4.dp),
+            )
+            Spacer(Modifier.width(8.dp))
             // VI / EN switch (SPEC): Android restarts the screen with the new language.
             Text(
                 buildAnnotatedString {
