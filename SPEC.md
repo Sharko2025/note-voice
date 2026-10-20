@@ -369,10 +369,10 @@ Làm backend trước và test bằng `curl` với audio thu sẵn, sau đó m�
 
 **Phase 2: App Android cơ bản**
 
-- [ ] 4 màn hình danh sách, thêm/sửa/xóa/hoàn thành/gắn sao bằng tay
-- [ ] Màn Ghi chú: lọc nhãn, thêm/sửa/xóa/gắn sao bằng tay, ghi âm `as_note`
-- [ ] Ghi âm trong app + hàng đợi Room + `UploadWorker` + kết quả kèm Hoàn tác
-- [ ] Bật chế độ máy bay, nói 3 lần, tắt chế độ máy bay → cả 3 lên server, không trùng
+- [x] 4 màn hình danh sách, thêm/sửa/xóa/hoàn thành/gắn sao bằng tay
+- [x] Màn Ghi chú: lọc nhãn, thêm/sửa/xóa/gắn sao bằng tay, ghi âm `as_note`
+- [x] Ghi âm trong app + hàng đợi Room + `UploadWorker` + kết quả kèm Hoàn tác
+- [x] Bật chế độ máy bay, nói 3 lần, tắt chế độ máy bay → cả 3 lên server, không trùng
 
 **Phase 3: Nhắc việc**
 

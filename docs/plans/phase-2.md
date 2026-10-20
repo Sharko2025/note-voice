@@ -1,15 +1,15 @@
 # Phase 2 — App Android cơ bản
 
-Trạng thái: **code xong, chờ thử trên Fold 8** · Loi duyệt 2026-10-19 (cả 3 quyết định theo đề xuất)
+Trạng thái: **xong** (thử trên Fold 8 2026-10-20) · Loi duyệt 2026-10-19 (cả 3 quyết định theo đề xuất)
 
 Mục tiêu: app **Note Cá Mập** chạy trên Fold 8, đúng [mockup v3 đã duyệt](https://claude.ai/artifact/5wQsjDRmKu5ZYgYmVjN8Ch). Bốn danh sách việc và màn Ghi chú dùng được bằng tay và bằng giọng nói, ghi âm khi mất mạng không mất lần nào.
 
 Checklist SPEC tương ứng:
 
-- [ ] 4 màn hình danh sách, thêm/sửa/xóa/hoàn thành/gắn sao bằng tay → Task 5–8
-- [ ] Màn Ghi chú: lọc nhãn, thêm/sửa/xóa/gắn sao bằng tay, ghi âm `as_note` → Task 9
-- [ ] Ghi âm trong app + hàng đợi Room + `UploadWorker` + kết quả kèm Hoàn tác → Task 10–12
-- [ ] Bật chế độ máy bay, nói 3 lần, tắt chế độ máy bay → cả 3 lên server, không trùng → Task 14
+- [x] 4 màn hình danh sách, thêm/sửa/xóa/hoàn thành/gắn sao bằng tay → Task 5–8
+- [x] Màn Ghi chú: lọc nhãn, thêm/sửa/xóa/gắn sao bằng tay, ghi âm `as_note` → Task 9
+- [x] Ghi âm trong app + hàng đợi Room + `UploadWorker` + kết quả kèm Hoàn tác → Task 10–12
+- [x] Bật chế độ máy bay, nói 3 lần, tắt chế độ máy bay → cả 3 lên server, không trùng → Task 14
 
 **Không thuộc Phase 2:**
 - Báo thức nhắc việc và notification nhắc (Xong / Báo lại 10 phút) là Phase 3. Giờ nhắc vẫn đặt và sửa được trong app, chỉ chưa kêu.
@@ -248,9 +248,25 @@ Lý do không gọi server riêng cho từng màn: số đếm trong menu cần 
 2. Task 0: bật Wireless debugging, gửi `IP:port`.
 3. Thử trên máy ở Task 14 (em hướng dẫn từng bước).
 
-## Nhật ký thử trên Fold 8
+## Nhật ký thử trên Fold 8 (2026-10-20)
 
-(chưa có: chờ Loi bật Wireless debugging)
+SM-F971B, Android 17, cắm USB (`adb -s R5GL740VKFZ`), bản debug trỏ vào production `https://notecamap.s-itpro.com`. Token nhập qua adb, không in ra.
+
+| Bước | Kết quả |
+| --- | --- |
+| 14.3 Nói "mai 9 giờ sáng gọi cho anh Tuấn, mua sữa cho con, quan trọng" × 3 | ✅ 3/3 ra 2 việc: Gọi cho anh Tuấn (mai 21/10, nhắc 09:00) + Mua sữa cho con ⭐, vào Ngày của tôi; rung, sóng âm, snackbar có câu đã nghe |
+| 14.5 Thời gian (Wi-Fi) | ✅ `total_ms` 2155–3368 với câu ngắn (STT 1,0–1,5 s, parse 1,1–2,0 s); câu dài 3 việc 4497. Loi cảm nhận "tầm 3 giây" |
+| 14.2 Gõ tay "Mua pin" | ✅ hiện ngay; nút micro ẩn khi gõ |
+| 14.7 Đóng app ngay sau khi nói "chiều nay 5 giờ đón con" | ✅ notification "Đã thêm 1 việc" + Hoàn tác; Hoàn tác xóa việc (server: `deleted_at`) |
+| 14.6 Máy bay: 1 lần nói "thứ 7 rửa xe, ý tưởng làm kệ sách cho con" | ✅ "1 bản ghi đã lưu, sẽ gửi khi có mạng"; tắt máy bay → tự gửi (ghi 09:11:46, server nhận 09:12:31), Rửa xe (T7 24/10) + ý tưởng vào Ghi chú, không trùng. (3 lần nói offline đã thử trên máy ảo) |
+| 14.4 Câu vừa có việc vừa có ý tưởng | ✅ như trên |
+| 14.8 Gập → mở máy giữa lúc ghi âm (câu dài) | ✅ không ngắt, ra 3 việc: Đi ngân hàng rút tiền (mai), Mua gạo, nước mắm và trứng, Gọi cho chị Lan (T6 23/10) |
+| 14.1 VI/EN, 3 cột khi mở máy | ✅ Loi xác nhận |
+
+Sửa trong lúc thử (commit 879574c):
+- Lần mở đầu tiên hiện tiếng Anh (máy đặt tiếng Anh): Samsung không đẩy ngôn ngữ mặc định vào process đang chạy → `MainActivity.attachBaseContext` tự áp. Thử lại như mới cài: tiếng Việt; VI · EN đổi được hai chiều.
+- Loi yêu cầu: **nút micro to giữa đáy** (76dp, vòng sáng, nổi trên thanh gõ; ẩn khi gõ) và **nút "Việc · Ghi chú"** cạnh VI · EN. Ghi vào SPEC "Quyết định đã chốt".
+- Đóng bàn phím mà ô gõ còn focus → micro không hiện lại → bỏ focus khi bàn phím đóng.
 
 ## Nhật ký thử trên máy ảo (2026-10-19)
 
