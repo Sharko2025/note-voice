@@ -29,6 +29,7 @@ Ngoài việc cần làm, anh còn ghi lại **ý tưởng bất chợt** và **
 - Việc lặp lại (hằng ngày, hằng tuần…).
 - Nhiều danh sách (Công việc, Nhà…), bước con trong một việc.
 - Thêm/sửa việc khi mất mạng (MVP: chỉ ghi âm được xếp hàng offline).
+- Backup ngoài máy EC2 (S3 + IAM role, hoặc chỗ khác). MVP: 30 bản trên chính server (Loi đưa vào backlog 2026-10-20).
 
 **Ngoài phạm vi**
 
