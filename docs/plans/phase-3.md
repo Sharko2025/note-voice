@@ -126,6 +126,14 @@ Theo mockup: nhóm **Quyền** với 2 dòng "Báo thức chính xác" và "Thô
 - Notification nhắc đang hiện mà việc được đánh dấu xong / xóa trong app → tự gỡ.
 - Test: 113 unit test Android (thêm `ReminderPlannerTest` 12, `TaskPatchQueueTest` 10, `ReminderSchedulerTest` 9, `MigrationTest` 1, chữ nhắc VI/EN).
 
-## Nhật ký thử trên Fold 8
+## Nhật ký thử trên Fold 8 (2026-10-20)
 
-(chưa có)
+Bản debug, USB. Battery Unrestricted (Loi đặt; `dumpsys deviceidle whitelist` có app). `dumpsys alarm`: báo thức của app là `RTC_WAKEUP`, `exactAllowReason=policy_permission` (USE_EXACT_ALARM có hiệu lực).
+
+| Bước | Kết quả |
+| --- | --- |
+| 1. "Nhắc tôi lúc mười một giờ uống nước" → thoát app, khóa máy | ✅ báo thức 11:00 kêu lúc 11:00:04, notification có tiếng, 3 nút (Loi: "perfect") |
+| 2. Báo lại 10 phút | ✅ bấm 11:00:17 → server `remind_at` 11:10:17 (gửi < 1 s), báo thức mới 11:10:17 trên máy |
+| 3. Xong · 4. Mở · 5. Sửa giờ / xóa · 6. Máy bay · 7. Khởi động lại · 8. Lỡ khi tắt máy | ⏳ chưa thử: Loi rút máy để em làm tiếp Phase 4 |
+
+Checklist SPEC Phase 3 chưa đánh dấu, chờ bước 3–8 (làm cùng lúc cài APK release, Phase 4 Task 2).

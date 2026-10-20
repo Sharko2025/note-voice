@@ -42,7 +42,19 @@ Bản dev (Claude Code chạy giúp):
 cd android
 ./gradlew installDebug
 ```
-Bản dùng thật (APK đã ký) là Phase 4. Khi cài APK ngoài Store: tạm tắt **Settings → Security and privacy → Auto Blocker**, cài xong bật lại.
+**Bản dùng thật (APK đã ký, Phase 4):** `android/NoteCaMap-1.0.0.apk`, build bằng `./gradlew assembleRelease` (ký bằng `android/notevoice.jks` + `android/keystore.properties`, hai file **không commit**: cất vào password manager, mất thì không cài đè bản mới được).
+
+Lần đầu chuyển từ bản dev sang bản thật (khác chữ ký nên Android không cho cài đè):
+1. Mở app, xem **Cài đặt → Hàng đợi** phải là **0 bản ghi đang chờ** (bản ghi chưa gửi sẽ mất khi gỡ app).
+2. Trên laptop (cắm USB):
+   ```
+   adb uninstall com.sitpro.notevoice
+   adb install android/NoteCaMap-1.0.0.apk
+   ```
+   Không dùng adb: chép APK vào máy, mở bằng **My Files** → cài. Tạm tắt **Settings → Security and privacy → Auto Blocker**, cài xong bật lại.
+3. Làm lại mục 4 (quyền, token) và mục 5 (Pin → Unrestricted).
+
+Các lần sau (cùng keystore): `adb install -r android/NoteCaMap-<phiên bản>.apk`, giữ nguyên dữ liệu và token.
 
 App chỉ có **1 icon**: **Note Cá Mập** (tờ note, vây cá mập cam, nền navy). Không có icon ghi âm riêng, không có nút nguồn / tile / widget (ngoài MVP).
 

@@ -72,10 +72,21 @@ curl -H "Authorization: Bearer $DEVICE_TOKEN" "https://notecamap.s-itpro.com/api
 
 ## Backup / restore
 
-`backup.sh` dumps Postgres, uploads to `$BACKUP_S3_URI`, keeps the newest 30. Cron is set up in Phase 4.
+`backup.sh` dumps Postgres to `~/backups/note-voice/notevoice-YYYYMMDD-HHMMSS.sql.gz` (mode 600) and keeps the newest 30.
+If `BACKUP_S3_URI` in `.env` is a real bucket and the `aws` CLI is installed, it also uploads there and keeps 30 in S3.
+Restore drill run on the server 2026-10-20: counts matched the live DB.
 
 ```bash
-# restore
-aws s3 cp "$BACKUP_S3_URI/notevoice-YYYYMMDD-HHMMSS.sql.gz" - | gunzip | \
-  docker compose exec -T db psql -U notevoice -d notevoice
+# once, after Loi confirms (CLAUDE.md: no cron changes without confirmation): nightly at 02:00
+( crontab -l 2>/dev/null; echo '0 2 * * * /home/ubuntu/note-voice/deploy/backup.sh >> /home/ubuntu/backups/note-voice/backup.log 2>&1' ) | crontab -
+
+# restore drill: newest backup into a throwaway container, compare counts with the live DB
+deploy/restore-test.sh
+
+# real restore (overwrites the live DB; the dump starts with DROP ... IF EXISTS)
+gunzip -c ~/backups/note-voice/notevoice-YYYYMMDD-HHMMSS.sql.gz | \
+  docker compose -f deploy/docker-compose.yml exec -T db psql -U notevoice -d notevoice
+
+# a week of use: what was said and what it became (Phase 4 review)
+deploy/review.sh 7
 ```

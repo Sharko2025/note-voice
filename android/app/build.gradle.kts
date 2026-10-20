@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -14,13 +16,30 @@ android {
         // Single device: Samsung Galaxy Z Fold 8 (Android 17 / API 37).
         minSdk = 37
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "1.0.0"
+    }
+
+    // Own keystore notevoice.jks (SPEC). Passwords from android/keystore.properties or the environment; neither is
+    // committed. Without them assembleRelease fails instead of signing with the debug key.
+    val keystore = Properties().apply {
+        rootProject.file("keystore.properties").takeIf { it.exists() }?.inputStream()?.use(::load)
+    }
+    fun secret(key: String, env: String): String? = keystore.getProperty(key) ?: System.getenv(env)
+    signingConfigs {
+        create("release") {
+            secret("storeFile", "NOTEVOICE_KEYSTORE")?.let { storeFile = rootProject.file(it) }
+            storePassword = secret("storePassword", "NOTEVOICE_KEYSTORE_PASSWORD")
+            keyAlias = secret("keyAlias", "NOTEVOICE_KEY_ALIAS") ?: "notevoice"
+            keyPassword = secret("keyPassword", "NOTEVOICE_KEY_PASSWORD")
+        }
     }
 
     buildTypes {
         release {
+            // One phone, no store: no R8, which would need keep rules for Retrofit and kotlinx.serialization.
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 
