@@ -27,7 +27,7 @@ fun resultText(texts: Texts, rawText: String?, tasks: List<TaskDto>, notes: List
     lines = tasks.map { it.title } + notes.map { "${texts.label(it.label)}: ${it.text}" },
 )
 
-/** Result notifications for when the app is closed (SPEC); the reminder channel comes in Phase 3. */
+/** Result notifications for when the app is closed (SPEC). Reminders have their own [ReminderNotifier]. */
 class ResultNotifier(private val context: Context) : ResultSink {
     private val manager = NotificationManagerCompat.from(context)
 

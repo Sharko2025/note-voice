@@ -147,6 +147,12 @@
     </plurals>
     <string name="queue_ok">All sent</string>
     <string name="resend_queue">Resend queue</string>
+    <string name="permissions">Permissions</string>
+    <string name="perm_exact_alarms">Exact alarms</string>
+    <string name="perm_notifications">Notifications</string>
+    <string name="perm_battery">Battery: Unrestricted</string>
+    <string name="perm_on">On</string>
+    <string name="perm_off">Off · Open settings</string>
     <string name="queue_resent">Queue resent</string>
     <string name="save_and_check">Save and check</string>
     <string name="checking">Checking…</string>
@@ -168,4 +174,9 @@
     <string name="notif_token_text">Open Settings to fix it</string>
     <string name="notif_undone">Undone</string>
     <string name="notif_undoing">Undoing…</string>
+    <string name="channel_reminder">Reminders</string>
+    <string name="reminder_line">Reminder at %1$s · %2$s</string>
+    <string name="reminder_done">Done</string>
+    <string name="reminder_snooze">Snooze 10 min</string>
+    <string name="reminder_open">Open</string>
 </resources>

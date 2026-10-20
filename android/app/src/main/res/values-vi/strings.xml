@@ -137,6 +137,12 @@
     </plurals>
     <string name="queue_ok">Đã gửi hết</string>
     <string name="resend_queue">Gửi lại hàng đợi</string>
+    <string name="permissions">Quyền</string>
+    <string name="perm_exact_alarms">Báo thức chính xác</string>
+    <string name="perm_notifications">Thông báo</string>
+    <string name="perm_battery">Pin: Không hạn chế</string>
+    <string name="perm_on">Bật</string>
+    <string name="perm_off">Tắt · Mở cài đặt</string>
     <string name="queue_resent">Đã gửi lại hàng đợi</string>
     <string name="save_and_check">Lưu và kiểm tra</string>
     <string name="checking">Đang kiểm tra…</string>
@@ -158,4 +164,9 @@
     <string name="notif_token_text">Mở Cài đặt để sửa</string>
     <string name="notif_undone">Đã hoàn tác</string>
     <string name="notif_undoing">Đang hoàn tác…</string>
+    <string name="channel_reminder">Nhắc việc</string>
+    <string name="reminder_line">Nhắc lúc %1$s · %2$s</string>
+    <string name="reminder_done">Xong</string>
+    <string name="reminder_snooze">Báo lại 10 phút</string>
+    <string name="reminder_open">Mở</string>
 </resources>

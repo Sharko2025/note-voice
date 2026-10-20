@@ -11,7 +11,10 @@ import com.sitpro.notevoice.data.NoteRepository
 import com.sitpro.notevoice.data.PendingUpload
 import com.sitpro.notevoice.data.SettingsStore
 import com.sitpro.notevoice.data.TaskRepository
+import com.sitpro.notevoice.notify.ReminderNotifier
 import com.sitpro.notevoice.notify.ResultNotifier
+import com.sitpro.notevoice.reminder.ReminderActions
+import com.sitpro.notevoice.reminder.ReminderScheduler
 import com.sitpro.notevoice.sync.NetworkMonitor
 import com.sitpro.notevoice.sync.ResultRouter
 import com.sitpro.notevoice.sync.UploadProcessor
@@ -42,13 +45,17 @@ class AppContainer(context: Context) {
         return createApiService(url) { settings.current.token }.also { cachedApi = url to it }
     }
 
-    val tasks = TaskRepository(::api, db)
+    val reminderNotifier = ReminderNotifier(appContext)
+    val reminders = ReminderScheduler(appContext, db, reminderNotifier)
+    /** Every change to the cached tasks re-plans the reminder alarms (CLAUDE.md "Báo thức"). */
+    val tasks = TaskRepository(::api, db, onChanged = { reminders.sync() })
     val notes = NoteRepository(::api, db)
     val notifier = ResultNotifier(appContext)
     val results = ResultRouter(notifier, notifier::cancel)
     val processor = UploadProcessor(::api, db.pendingDao(), tasks, notes, results)
     val scheduler = UploadScheduler(appContext)
     val network = NetworkMonitor(appContext, appScope)
+    val reminderActions = ReminderActions(tasks, reminderNotifier, scheduler::enqueuePatch)
 
     val pendingDir: File = File(appContext.filesDir, "pending").apply { mkdirs() }
 
@@ -68,7 +75,13 @@ class AppContainer(context: Context) {
         appScope.launch {
             db.pendingDao().unblockAll()
             db.pendingDao().all().forEach { scheduler.enqueue(it.entryId) }
+            db.taskPatchDao().all().forEach { scheduler.enqueuePatch(it.taskId) }
         }
+    }
+
+    /** On app start: alarms may have been lost (force stop) or come due while the process was gone. */
+    fun syncReminders() {
+        appScope.launch { reminders.sync() }
     }
 }
 
@@ -83,12 +96,17 @@ class NoteApp : Application() {
         AppLanguage.applyDefaultOnce(this)
         container = AppContainer(this)
         container.notifier.createChannels()
+        container.reminderNotifier.createChannel()
         container.resendQueue()
+        container.syncReminders()
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         // Language switched: rename the notification channels shown in Android Settings.
-        if (::container.isInitialized) container.notifier.createChannels()
+        if (::container.isInitialized) {
+            container.notifier.createChannels()
+            container.reminderNotifier.createChannel()
+        }
     }
 }

@@ -3,6 +3,7 @@ package com.sitpro.notevoice
 import android.Manifest
 import android.app.LocaleManager
 import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -14,6 +15,7 @@ import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.sitpro.notevoice.notify.ReminderNotifier
 import com.sitpro.notevoice.ui.AppShell
 import com.sitpro.notevoice.ui.AppTheme
 import com.sitpro.notevoice.ui.MainViewModel
@@ -61,12 +63,25 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         recording = RecordController(this, container, lifecycleScope, vm::show)
-        if (savedInstanceState == null) requestFirstRunPermissions()
+        if (savedInstanceState == null) {
+            requestFirstRunPermissions()
+            openTaskFrom(intent)
+        }
         setContent {
             AppTheme {
                 AppShell(vm, settingsVm, recording, onMic = ::onMic)
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        openTaskFrom(intent)
+    }
+
+    /** Reminder notification tapped, or its Open button (Loi, 2026-10-20). */
+    private fun openTaskFrom(intent: Intent?) {
+        intent?.getStringExtra(ReminderNotifier.EXTRA_TASK_ID)?.let(vm::openTask)
     }
 
     override fun onStart() {

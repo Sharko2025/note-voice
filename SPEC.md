@@ -309,11 +309,13 @@ app/src/main/java/com/sitpro/notevoice/
 
 - Mỗi việc có `remind_at` trong tương lai và chưa xong → 1 báo thức chính xác, `requestCode` theo id việc.
 - Đặt lại toàn bộ báo thức sau mỗi lần tải danh sách, sau khi sửa việc, và sau `BOOT_COMPLETED`.
+- Nhắc bị lỡ lúc máy tắt (trong 24 giờ qua, chưa xong) → báo ngay khi máy bật lại, mỗi việc 1 lần (Loi chốt 2026-10-20).
+- Kênh "Nhắc việc" ưu tiên cao: tiếng + rung, hiện nổi, hiện trên màn hình khóa; không reo toàn màn hình. Chạm notification / **Mở** → mở chi tiết việc đó.
 - Notification: tiêu đề việc, giờ nhắc; chạm để mở app; nút **Xong** (gọi `PATCH completed=true` qua WorkManager), **Báo lại sau 10 phút** (đặt lại báo thức ngay trên máy, rồi `PATCH remind_at` = bây giờ + 10 phút qua WorkManager), **Mở**.
 
 **Cài đặt** (màn hình phụ): URL server (mặc định `https://notecamap.s-itpro.com`), device token, nút "Gửi lại hàng đợi", số mục đang chờ.
 
-**Quyền cần xin:** `RECORD_AUDIO`, `POST_NOTIFICATIONS`, `INTERNET`, `SCHEDULE_EXACT_ALARM`, `RECEIVE_BOOT_COMPLETED`.
+**Quyền cần xin:** `RECORD_AUDIO`, `POST_NOTIFICATIONS`, `INTERNET`, `USE_EXACT_ALARM` (tự có khi cài, không lên Play Store; Loi chốt 2026-10-20), `RECEIVE_BOOT_COMPLETED`.
 
 ## Hạ tầng
 

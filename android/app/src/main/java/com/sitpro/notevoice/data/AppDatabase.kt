@@ -1,5 +1,6 @@
 package com.sitpro.notevoice.data
 
+import androidx.room.AutoMigration
 import androidx.room.Dao
 import androidx.room.Database
 import androidx.room.Entity
@@ -56,6 +57,22 @@ data class CachedNote(
     val createdAtMillis: Long?,
     val position: Long,
 )
+
+/**
+ * Done / Snooze from a reminder notification, applied to the cache at once and waiting to reach the server
+ * (works offline). One row per task: a later tap merges into it; `version` tells the worker if it changed meanwhile.
+ */
+@Entity(tableName = "pending_task_patches")
+data class PendingTaskPatch(
+    @PrimaryKey val taskId: String,
+    val completedAtMillis: Long? = null, // set = mark done
+    val remindAtMillis: Long? = null, // set = new reminder time (snooze)
+    val version: Long,
+)
+
+/** A reminder alarm the app has set (task id → time). Kept across reboots, unlike Android's alarms. */
+@Entity(tableName = "scheduled_reminders")
+data class ScheduledReminder(@PrimaryKey val taskId: String, val remindAtMillis: Long)
 
 /** "Last updated at" per cached list, e.g. "tasks". */
 @Entity(tableName = "cache_meta")
@@ -114,11 +131,51 @@ interface TaskDao {
         upsert(rows)
     }
 
+    @Query("SELECT * FROM cached_tasks")
+    suspend fun all(): List<CachedTask>
+
     @Query("DELETE FROM cached_tasks WHERE id = :id")
     suspend fun delete(id: String)
 
     @Query("DELETE FROM cached_tasks WHERE voiceEntryId = :entryId")
     suspend fun deleteByVoiceEntry(entryId: String)
+}
+
+@Dao
+interface TaskPatchDao {
+    @Query("SELECT * FROM pending_task_patches WHERE taskId = :taskId")
+    suspend fun get(taskId: String): PendingTaskPatch?
+
+    @Query("SELECT * FROM pending_task_patches")
+    suspend fun all(): List<PendingTaskPatch>
+
+    @Upsert
+    suspend fun upsert(row: PendingTaskPatch)
+
+    /** Removes the patch only if no newer tap replaced it while it was being sent. */
+    @Query("DELETE FROM pending_task_patches WHERE taskId = :taskId AND version = :version")
+    suspend fun deleteIfUnchanged(taskId: String, version: Long)
+
+    @Query("DELETE FROM pending_task_patches WHERE taskId = :taskId")
+    suspend fun delete(taskId: String)
+}
+
+@Dao
+interface ScheduledReminderDao {
+    @Query("SELECT * FROM scheduled_reminders")
+    suspend fun all(): List<ScheduledReminder>
+
+    @Query("DELETE FROM scheduled_reminders")
+    suspend fun clear()
+
+    @Insert
+    suspend fun insert(rows: List<ScheduledReminder>)
+
+    @Transaction
+    suspend fun replaceAll(rows: List<ScheduledReminder>) {
+        clear()
+        insert(rows)
+    }
 }
 
 @Dao
@@ -161,12 +218,19 @@ interface MetaDao {
 }
 
 @Database(
-    entities = [PendingUpload::class, CachedTask::class, CachedNote::class, CacheMeta::class],
-    version = 1,
+    entities = [
+        PendingUpload::class, CachedTask::class, CachedNote::class, CacheMeta::class,
+        PendingTaskPatch::class, ScheduledReminder::class,
+    ],
+    version = 2,
+    // v2 (Phase 3): reminder tables. Migrate, never wipe: the recording queue lives here.
+    autoMigrations = [AutoMigration(from = 1, to = 2)],
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun pendingDao(): PendingDao
     abstract fun taskDao(): TaskDao
     abstract fun noteDao(): NoteDao
     abstract fun metaDao(): MetaDao
+    abstract fun taskPatchDao(): TaskPatchDao
+    abstract fun scheduledReminderDao(): ScheduledReminderDao
 }

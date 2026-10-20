@@ -44,6 +44,10 @@ class Texts(private val res: Resources) {
         else -> shortDate(day)
     }
 
+    /** "Nhắc lúc 16:00 · Hôm nay" in the reminder notification (mockup "Notification shade"). */
+    fun reminderLine(millis: Long, today: LocalDate): String =
+        res.getString(R.string.reminder_line, time(millis), dueLabel(vnDate(millis), today))
+
     /** "Thứ Hai, 19 tháng 10" under the My Day title. */
     fun myDaySubtitle(day: LocalDate): String =
         "${weekdayLong[day.dayOfWeek.value - 1]}, ${pattern(R.string.pattern_day_month_long).format(day)}"

@@ -25,6 +25,13 @@ class TextsVietnameseTest {
 
     @Test fun sundayIsCN() = assertEquals("CN, 25/10", t.shortDate(LocalDate.of(2026, 10, 25)))
 
+    /** Reminder notification body, mockup "Notification shade". */
+    @Test fun reminderLine() {
+        assertEquals("Nhắc lúc 16:00 · Hôm nay", t.reminderLine(at(TODAY, 16, 0), TODAY))
+        assertEquals("Nhắc lúc 09:00 · Ngày mai", t.reminderLine(at(TODAY.plusDays(1), 9, 0), TODAY))
+        assertEquals("Nhắc lúc 08:30 · T7, 17/10", t.reminderLine(at(TODAY.minusDays(2), 8, 30), TODAY))
+    }
+
     @Test fun dueLabels() {
         assertEquals("Hôm nay", t.dueLabel(TODAY, TODAY))
         assertEquals("Ngày mai", t.dueLabel(TODAY.plusDays(1), TODAY))
@@ -62,6 +69,11 @@ class TextsEnglishTest {
     private val t = texts()
 
     @Test fun shortDate() = assertEquals("Fri, Oct 23", t.shortDate(LocalDate.of(2026, 10, 23)))
+
+    @Test fun reminderLine() {
+        assertEquals("Reminder at 16:00 · Today", t.reminderLine(at(TODAY, 16, 0), TODAY))
+        assertEquals("Reminder at 09:00 · Tomorrow", t.reminderLine(at(TODAY.plusDays(1), 9, 0), TODAY))
+    }
 
     @Test fun dueLabels() {
         assertEquals("Today", t.dueLabel(TODAY, TODAY))

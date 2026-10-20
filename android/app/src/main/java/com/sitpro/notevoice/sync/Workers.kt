@@ -17,6 +17,7 @@ import com.sitpro.notevoice.container
 import java.util.concurrent.TimeUnit
 
 private const val KEY_ENTRY_ID = "entry_id"
+private const val KEY_TASK_ID = "task_id"
 
 private fun UploadProcessor.Step.toResult() = when (this) {
     UploadProcessor.Step.DONE -> androidx.work.ListenableWorker.Result.success()
@@ -36,6 +37,14 @@ class UndoWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
     override suspend fun doWork(): Result {
         val entryId = inputData.getString(KEY_ENTRY_ID) ?: return Result.failure()
         return applicationContext.container.processor.undo(entryId).toResult()
+    }
+}
+
+/** Sends a Done / Snooze tapped on a reminder notification (Phase 3). */
+class TaskPatchWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
+    override suspend fun doWork(): Result {
+        val taskId = inputData.getString(KEY_TASK_ID) ?: return Result.failure()
+        return applicationContext.container.tasks.sendPatch(taskId).toResult()
     }
 }
 
@@ -63,6 +72,16 @@ class UploadScheduler(private val context: Context) {
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.SECONDS)
             .build()
         workManager.enqueueUniqueWork("undo-$entryId", ExistingWorkPolicy.KEEP, request)
+    }
+
+    /** Appended, not kept: a tap while the previous send runs must still be sent afterwards. */
+    fun enqueuePatch(taskId: String) {
+        val request = OneTimeWorkRequestBuilder<TaskPatchWorker>()
+            .setInputData(workDataOf(KEY_TASK_ID to taskId))
+            .setConstraints(network)
+            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.SECONDS)
+            .build()
+        workManager.enqueueUniqueWork("patch-$taskId", ExistingWorkPolicy.APPEND_OR_REPLACE, request)
     }
 
     fun isOnline(): Boolean {

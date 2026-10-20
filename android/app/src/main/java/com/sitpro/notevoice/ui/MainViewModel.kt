@@ -106,6 +106,13 @@ class MainViewModel(private val container: AppContainer) : ViewModel() {
         if (target != Screen.SETTINGS) refresh()
     }
 
+    /** From a reminder notification: show that task's details over the current list. */
+    fun openTask(taskId: String) {
+        if (screen.value == Screen.SETTINGS || screen.value == Screen.NOTES) open(lastTaskScreen)
+        selectedNoteId.value = null
+        selectedTaskId.value = taskId
+    }
+
     fun refresh() {
         today.value = todayVn()
         if (!container.settings.current.isConfigured) return
