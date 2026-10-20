@@ -379,12 +379,12 @@ Làm backend trước và test bằng `curl` với audio thu sẵn, sau đó m�
 
 **Phase 3: Nhắc việc**
 
-- [ ] Báo thức chính xác + notification có nút Xong, Báo lại sau 10 phút
-- [ ] Khởi động lại máy → báo thức vẫn kêu đúng giờ
+- [x] Báo thức chính xác + notification có nút Xong, Báo lại sau 10 phút
+- [x] Khởi động lại máy → báo thức vẫn kêu đúng giờ (unit test; chưa thử trên máy, Loi chấp nhận 2026-10-20)
 
 **Phase 4: Dùng thật**
 
-- [ ] Build APK đã ký, cài lên Fold 8
+- [x] Build APK đã ký, cài lên Fold 8
 - [ ] Backup hằng đêm chạy, thử khôi phục 1 lần
 - [ ] Dùng 1 tuần, ghi lại các câu parse sai để chỉnh prompt
 

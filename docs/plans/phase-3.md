@@ -1,6 +1,6 @@
 # Phase 3 — Nhắc việc
 
-Trạng thái: **code xong Task 1–6, chờ thử trên Fold 8** · Loi duyệt 2026-10-20 (cả 4 quyết định theo đề xuất)
+Trạng thái: **xong** (2026-10-20) · Loi duyệt 2026-10-20 (cả 4 quyết định theo đề xuất)
 
 Mục tiêu: việc có giờ nhắc thì **đúng giờ đó** Fold 8 hiện notification (có tiếng, hiện nổi trên màn hình), kể cả khi app đã đóng, máy đang khóa hoặc vừa khởi động lại. Notification có 3 nút **Xong · Báo lại 10 phút · Mở**, đúng mockup v3 (màn "Reminders": notification shade và Cài đặt → Quyền).
 
@@ -134,6 +134,6 @@ Bản debug, USB. Battery Unrestricted (Loi đặt; `dumpsys deviceidle whitelis
 | --- | --- |
 | 1. "Nhắc tôi lúc mười một giờ uống nước" → thoát app, khóa máy | ✅ báo thức 11:00 kêu lúc 11:00:04, notification có tiếng, 3 nút (Loi: "perfect") |
 | 2. Báo lại 10 phút | ✅ bấm 11:00:17 → server `remind_at` 11:10:17 (gửi < 1 s), báo thức mới 11:10:17 trên máy |
-| 3. Xong · 4. Mở · 5. Sửa giờ / xóa · 6. Máy bay · 7. Khởi động lại · 8. Lỡ khi tắt máy | ⏳ chưa thử: Loi rút máy để em làm tiếp Phase 4 |
+| 3. Xong · 4. Mở · 5. Sửa giờ / xóa · 6. Máy bay · 7. Khởi động lại · 8. Lỡ khi tắt máy | **Không thử trên máy**: Loi "a nghĩ là ok, không cần test nữa" (2026-10-20). Có unit test (`ReminderPlannerTest`, `ReminderSchedulerTest`, `TaskPatchQueueTest`). Nếu dùng thật thấy sai → báo em |
 
-Checklist SPEC Phase 3 chưa đánh dấu, chờ bước 3–8 (làm cùng lúc cài APK release, Phase 4 Task 2).
+Checklist SPEC Phase 3 đánh dấu theo quyết định của Loi; dòng khởi động lại ghi rõ là chỉ có unit test.
